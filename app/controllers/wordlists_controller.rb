@@ -24,30 +24,24 @@ class WordlistsController < ApplicationController
       render_error_response(400, 'Invalid token')
     end
 
-    if decoded_token['user_id']
-      Wordlist.find_by!(user_id: decoded_token['user_id']).tap do |wordlist|
-        @wordlist = JSON.parse(wordlist.to_json).symbolize_keys
-      end
-    else
-      Wordlist.find(decoded_token['wordlist_id']).tap do |wordlist|
-        @wordlist = JSON.parse(wordlist.to_json).symbolize_keys
-    end
+    wordlist = decoded_token['user_id'] ? Wordlist.find_by!(user_id: decoded_token['user_id']) : Wordlist.find(decoded_token['wordlist_id'])
+    serialised_wordlist = JSON.parse(wordlist).symbolize_keys
 
-      generate_token({ exp: (Time.now + 1800).to_i, wordlist_id: @wordlist[:id] }).then do |token|
-        render json: {
-          data: {
-            token: token,
-            type: 'wordlists',
-            id: @wordlist[:id],
-            attributes: {
-              created_at: @wordlist[:created_at],
-              updated_at: @wordlist[:updated_at],
-              user_id: @wordlist[:user_id]
-            }
+    generate_token({ exp: (Time.now + 1800).to_i, wordlist_id: @wordlist[:id] }).then do |token|
+      render json: {
+        data: {
+          token: token,
+          type: 'wordlists',
+          id: wordlist[:id],
+          attributes: {
+            created_at: wordlist[:created_at],
+            updated_at: wordlist[:updated_at],
+            user_id: wordlist[:user_id]
           }
         }
-      end
+      }
     end
+
     rescue ActiveRecord::RecordNotFound => e
       render_error_response(404, e)
     rescue JWT::DecodeError => e
