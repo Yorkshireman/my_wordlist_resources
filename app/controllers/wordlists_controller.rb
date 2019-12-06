@@ -25,18 +25,18 @@ class WordlistsController < ApplicationController
     end
 
     wordlist = decoded_token['user_id'] ? Wordlist.find_by!(user_id: decoded_token['user_id']) : Wordlist.find(decoded_token['wordlist_id'])
-    serialised_wordlist = JSON.parse(wordlist).symbolize_keys
+    serialised_wordlist = JSON.parse(wordlist.to_json).symbolize_keys
 
-    generate_token({ exp: (Time.now + 1800).to_i, wordlist_id: @wordlist[:id] }).then do |token|
+    generate_token({ exp: (Time.now + 1800).to_i, wordlist_id: serialised_wordlist[:id] }).then do |token|
       render json: {
         data: {
           token: token,
-          type: 'wordlists',
-          id: wordlist[:id],
+          type: 'wordlist',
+          id: serialised_wordlist[:id],
           attributes: {
-            created_at: wordlist[:created_at],
-            updated_at: wordlist[:updated_at],
-            user_id: wordlist[:user_id]
+            created_at: serialised_wordlist[:created_at],
+            updated_at: serialised_wordlist[:updated_at],
+            user_id: serialised_wordlist[:user_id]
           }
         }
       }
