@@ -19,19 +19,30 @@ class WordlistsController < ApplicationController
 
   def show
     token = request.headers['Authorization'].split(' ').last
-    decode_token(token)[0].then do |decoded_token|
-      id = decoded_token['user_id'] || decoded_token['wordlist_id']
-      wordlist = JSON.parse(Wordlist.find(id).to_json).symbolize_keys
-      generate_token({ exp: (Time.now + 1800).to_i, wordlist_id: wordlist[:id] }).then do |token|
+    decoded_token = decode_token(token)[0]
+    unless decoded_token['user_id'] || decoded_token['wordlist_id']
+      render_error_response(400, 'Invalid token')
+    end
+
+    if decoded_token['user_id']
+      Wordlist.find_by!(user_id: decoded_token['user_id']).tap do |wordlist|
+        @wordlist = JSON.parse(wordlist.to_json).symbolize_keys
+      end
+    else
+      Wordlist.find(decoded_token['wordlist_id']).tap do |wordlist|
+        @wordlist = JSON.parse(wordlist.to_json).symbolize_keys
+    end
+
+      generate_token({ exp: (Time.now + 1800).to_i, wordlist_id: @wordlist[:id] }).then do |token|
         render json: {
           data: {
             token: token,
             type: 'wordlists',
-            id: wordlist[:id],
+            id: @wordlist[:id],
             attributes: {
-              created_at: wordlist[:created_at],
-              updated_at: wordlist[:updated_at],
-              user_id: wordlist[:user_id]
+              created_at: @wordlist[:created_at],
+              updated_at: @wordlist[:updated_at],
+              user_id: @wordlist[:user_id]
             }
           }
         }
