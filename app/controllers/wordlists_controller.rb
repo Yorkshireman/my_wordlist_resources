@@ -7,11 +7,11 @@ class WordlistsController < ApplicationController
     user_id = decode_token(token)[0]['user_id']
     wordlist = Wordlist.new(user_id: user_id)
     if wordlist.save
-      token = generate_token(user_id, wordlist_id)
+      token = generate_token(user_id, wordlist.id)
       response.status = 201
       render json: {
         data: {
-          token: token
+          token: token,
           type: 'wordlist',
           attributes: {}
         }
