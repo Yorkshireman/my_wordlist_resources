@@ -19,3 +19,4 @@
 /config/master.key
 
 .env
+spec/examples.txt
