@@ -17,8 +17,8 @@ ActiveRecord::Schema.define(version: 2019_12_05_002211) do
   enable_extension "plpgsql"
 
   create_table "wordlist_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.bigint "word_id"
-    t.bigint "wordlist_id"
+    t.uuid "word_id"
+    t.uuid "wordlist_id"
     t.string "description"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(version: 2019_12_05_002211) do
   end
 
   create_table "wordlists", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "user_id", null: false
+    t.uuid "user_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
