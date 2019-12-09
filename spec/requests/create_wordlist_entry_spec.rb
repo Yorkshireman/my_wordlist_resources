@@ -4,15 +4,15 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-RSpec.describe 'POST /wordlists response', type: :request do
+RSpec.describe 'POST /wordlistentries response', type: :request do
   include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
 
   describe 'when request is valid' do
     before :each do
-      Wordlist.destroy_all
       @user_id = SecureRandom.uuid
-      token = generate_token(@user_id)
+      @wordlist = Wordlist.create(user_id: @user_id)
+      token = generate_token(@user_id, @wordlist.id)
       headers = {
         'Authorization' => "Bearer #{token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
@@ -20,13 +20,12 @@ RSpec.describe 'POST /wordlists response', type: :request do
 
       freeze_time do
         time_now = Time.now
-        post '/wordlists', headers: headers
-        wordlist_id = Wordlist.first.id
+        post '/wordlistentries', headers: headers
         @time_frozen_token = JWT.encode(
           {
             exp: (time_now + 1800).to_i,
             user_id: @user_id,
-            wordlist_id: wordlist_id
+            wordlist_id: @wordlist.id
           },
           ENV['JWT_SECRET_KEY'],
           'HS256'
@@ -43,7 +42,14 @@ RSpec.describe 'POST /wordlists response', type: :request do
         data: {
           token: @time_frozen_token,
           type: 'wordlist',
-          attributes: {}
+          attributes: {
+            entries: [
+              {
+                word: 'dog',
+                description: 'A hairy animal of varying size.'
+              }
+            ]
+          }
         }
       }
 
