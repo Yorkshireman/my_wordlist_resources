@@ -13,6 +13,14 @@ RSpec.describe 'POST /wordlistentries response', type: :request do
       @user_id = SecureRandom.uuid
       @wordlist = Wordlist.create(user_id: @user_id)
       token = generate_token(@user_id, @wordlist.id)
+
+      params = {
+        wordlist_entry: {
+          word: 'dog',
+          description: 'A hairy animal of varying size.'
+        }
+      }
+
       headers = {
         'Authorization' => "Bearer #{token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
@@ -20,7 +28,7 @@ RSpec.describe 'POST /wordlistentries response', type: :request do
 
       freeze_time do
         time_now = Time.now
-        post '/wordlistentries', headers: headers
+        post '/wordlistentries', params: params # add `, headers: headers` here and the params don't get through - I need both
         @time_frozen_token = JWT.encode(
           {
             exp: (time_now + 1800).to_i,
