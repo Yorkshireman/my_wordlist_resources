@@ -25,7 +25,7 @@ class WordlistsController < ApplicationController
     user_id = decoded_token['user_id']
     wordlist_id = decoded_token['wordlist_id']
     unless user_id || wordlist_id
-      render_error_response(400, 'Invalid token')
+      return render_error_response(400, 'Invalid token')
     end
 
     wordlist = wordlist_id ? Wordlist.find(wordlist_id) : Wordlist.find_by!(user_id: user_id)
