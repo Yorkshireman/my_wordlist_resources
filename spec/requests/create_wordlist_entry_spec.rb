@@ -4,7 +4,7 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-RSpec.describe 'POST /wordlistentries response', type: :request do
+RSpec.describe.skip 'POST /wordlistentries response', type: :request do
   include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
 

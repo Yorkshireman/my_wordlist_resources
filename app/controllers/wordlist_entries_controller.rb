@@ -5,9 +5,6 @@ class WordlistEntriesController < ApplicationController
   include TokenHelper
 
   def create
-    puts '-----------------'
-    puts params
-    puts '-----------------'
     token = request.headers['Authorization'].split(' ').last
     decoded_token = decode_token(token)[0]
     wordlist_id = decoded_token['wordlist_id'] # maybe use tap or then here
