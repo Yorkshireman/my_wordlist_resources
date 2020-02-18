@@ -4,6 +4,15 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
+def create_wordlist_entries
+  @user_id = SecureRandom.uuid
+  @wordlist_id = Wordlist.create(user_id: @user_id).id
+  @word = Word.create(name: 'capable')
+  @word2 = Word.create(name: 'rot')
+  WordlistEntry.create(word_id: @word.id, wordlist_id: @wordlist_id, description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing')
+  WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
+end
+
 RSpec.describe 'GET /wordlist_entries response', type: :request do
   include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
@@ -13,12 +22,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
       Wordlist.destroy_all
       Word.destroy_all
       WordlistEntry.destroy_all
-      @user_id = SecureRandom.uuid
-      @wordlist_id = Wordlist.create(user_id: @user_id).id
-      @word = Word.create(name: 'capable')
-      @word2 = Word.create(name: 'rot')
-      WordlistEntry.create(word_id: @word.id, wordlist_id: @wordlist_id, description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing')
-      WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
+      create_wordlist_entries
       token = generate_token(@user_id, @wordlist_id)
       headers = {
         'Authorization' => "Bearer #{token}",
