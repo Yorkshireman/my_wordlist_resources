@@ -11,8 +11,14 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
   describe 'when request is valid' do
     before :each do
       Wordlist.destroy_all
+      Word.destroy_all
+      WordlistEntry.destroy_all
       @user_id = SecureRandom.uuid
       @wordlist_id = Wordlist.create(user_id: @user_id).id
+      @word = Word.create(name: 'capable')
+      @word2 = Word.create(name: 'rot')
+      WordlistEntry.create(word_id: @word.id, wordlist_id: @wordlist_id, description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing')
+      WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
       token = generate_token(@user_id, @wordlist_id)
       headers = {
         'Authorization' => "Bearer #{token}",
@@ -42,7 +48,26 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
       expected_body = {
         data: {
           token: @time_frozen_token,
-          wordlist_entries: []
+          wordlist_entries: [
+            {
+              attributes: {
+                word: {
+                  id: @word.id,
+                  name: 'capable'
+                },
+                description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
+              }
+            },
+            {
+              attributes: {
+                word: {
+                  id: @word2.id,
+                  name: 'rot'
+                },
+                description: 'the process of decaying'
+              }
+            }
+          ]
         }
       }
 
