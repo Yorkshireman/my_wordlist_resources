@@ -31,7 +31,7 @@ class WordlistsController < ApplicationController
     wordlist = wordlist_id ? Wordlist.find(wordlist_id) : Wordlist.find_by!(user_id: user_id)
     # serialised_wordlist = JSON.parse(wordlist.to_json).symbolize_keys
 
-    generate_token(user_id, wordlist_id).then do |token|
+    generate_token(user_id, wordlist.id).then do |token|
       render json: {
         data: {
           token: token,
