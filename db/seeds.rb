@@ -1,6 +1,8 @@
-Wordlist.destroy_all
-
 require 'securerandom'
+
+Wordlist.destroy_all
+Word.destroy_all
+WordlistEntry.destroy_all
 
 def generate_random_sentence
   words = ['vulputate', 'mi', 'sit', 'amet', 'mauris', 'commodo', 'quis', 'imperdiet', 'massa', 'tincidunt', 'nunc', 'pulvinar', 'sapien', 'et', 'ligula', 'ullamcorper', 'malesuada', 'proin', 'libero', 'nunc', 'consequat', 'interdum', 'varius', 'sit', 'amet']
