@@ -7,8 +7,8 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'http://localhost:3000',
-            /https:\/\/mywordlist-[a-z0-9-]+.herokuapp.com/
+    origins ENV['CORS_URLS'],
+            /https:\/\/mywordlist-[a-z0-9-]+.herokuapp.com/ # for Heroku review apps (second half of those urls are randomly generated)
 
     resource '*',
       headers: :any,
