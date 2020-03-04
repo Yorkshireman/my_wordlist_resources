@@ -50,5 +50,36 @@ RSpec.describe 'GET /wordlist response', type: :request do
       actual_body = JSON.parse(response.body).deep_symbolize_keys
       expect(actual_body).to eq(expected_body)
     end
+
+    describe 'when request token does not include wordlist_id' do
+      before :each do
+        @user_id = SecureRandom.uuid
+        @wordlist_id = Wordlist.create(user_id: @user_id).id
+        token = generate_token(@user_id)
+        headers = {
+          'Authorization' => "Bearer #{token}",
+          'CONTENT_TYPE' => 'application/vnd.api+json'
+        }
+
+        freeze_time do
+          time_now = Time.now
+          get '/wordlist', headers: headers
+          @time_frozen_token = JWT.encode(
+            {
+              exp: (time_now + 1800).to_i,
+              user_id: @user_id,
+              wordlist_id: @wordlist_id
+            },
+            ENV['JWT_SECRET_KEY'],
+            'HS256'
+          )
+        end
+      end
+
+      it 'returned token includes wordlist_id' do
+        actual_token = (JSON.parse(response.body).deep_symbolize_keys)[:data][:token]
+        expect(actual_token).to eq(@time_frozen_token)
+      end
+    end
   end
 end
