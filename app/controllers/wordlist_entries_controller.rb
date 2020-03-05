@@ -5,12 +5,13 @@ class WordlistEntriesController < ApplicationController
   include TokenHelper
 
   def create
-    puts '-----------------'
-    puts params
-    puts '-----------------'
     token = request.headers['Authorization'].split(' ').last
     decoded_token = decode_token(token)[0]
     wordlist_id = decoded_token['wordlist_id'] # maybe use tap or then here
+    word = Word.create(name: params[:wordlist_entry][:word][:name])
+    if WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: params[:wordlist_entry][:description])
+      render json: { foo: 'bar' }, status: :created
+    end
   end
 
   def index
