@@ -48,7 +48,8 @@ class WordlistEntriesController < ApplicationController
         attributes: {
           word: {
             id: wordlist_entry.word.id,
-            name: wordlist_entry.word.name
+            name: wordlist_entry.word.name,
+            wordlist_ids: wordlist_entry.word.wordlist_ids
           },
           description: wordlist_entry.description
         }
