@@ -6,8 +6,8 @@ class WordlistEntriesController < ApplicationController
 
   def create
     wordlist_id = get_wordlist_id_from_headers(request.headers)
-    word = Word.find_by(name: wordlist_entry_params[:word][:name]).then do |word|
-      word || Word.create(name: wordlist_entry_params[:word][:name])
+    word = Word.find_by(wordlist_entry_params[:word]).then do |word|
+      word || Word.create(wordlist_entry_params[:word])
     end
 
     if wordlist_entry = WordlistEntry.create(
