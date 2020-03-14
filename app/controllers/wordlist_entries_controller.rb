@@ -6,14 +6,14 @@ class WordlistEntriesController < ApplicationController
 
   def create
     wordlist_id = get_wordlist_id_from_headers(request.headers)
-    word = Word.find_by(name: params[:wordlist_entry][:word][:name]).then do |word|
-      word || Word.create(name: params[:wordlist_entry][:word][:name])
+    word = Word.find_by(name: wordlist_entry_params[:word][:name]).then do |word|
+      word || Word.create(name: wordlist_entry_params[:word][:name])
     end
 
     if wordlist_entry = WordlistEntry.create(
       wordlist_id: wordlist_id,
       word_id: word.id,
-      description: params[:wordlist_entry][:description]
+      description: wordlist_entry_params[:description]
     )
       token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
       render json: {
@@ -84,5 +84,9 @@ class WordlistEntriesController < ApplicationController
         { title: message }
       ]
     }
+  end
+
+  def wordlist_entry_params
+    params.require(:wordlist_entry).permit(:description, word: [:name])
   end
 end
