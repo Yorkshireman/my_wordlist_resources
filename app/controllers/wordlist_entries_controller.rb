@@ -5,20 +5,36 @@ class WordlistEntriesController < ApplicationController
   include TokenHelper
 
   def create
-    token = request.headers['Authorization'].split(' ').last
-    decoded_token = decode_token(token)[0]
-    wordlist_id = decoded_token['wordlist_id'] # maybe use tap or then here
+    wordlist_id = get_wordlist_id_from_headers(request.headers)
     word = Word.create(name: params[:wordlist_entry][:word][:name])
-    if WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: params[:wordlist_entry][:description])
-      render json: { foo: 'bar' }, status: :created
+
+    if wordlist_entry = WordlistEntry.create(
+      wordlist_id: wordlist_id,
+      word_id: word.id,
+      description: params[:wordlist_entry][:description]
+    )
+      token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
+      render json: {
+        data: {
+          token: token,
+          type: 'wordlist-entry',
+          id: wordlist_entry.id,
+          attributes: {
+            description: wordlist_entry.description,
+            word: {
+              id: word.id,
+              name: word.name,
+              wordlist_ids: word.wordlist_ids
+            }
+          }
+        }
+      },
+      status: :created
     end
   end
 
   def index
-    token = request.headers['Authorization'].split(' ').last
-    decoded_token = decode_token(token)[0]
-    wordlist_id = decoded_token['wordlist_id']
-
+    wordlist_id = get_wordlist_id_from_headers(request.headers)
     unless wordlist_id
       return render_error_response(400, 'Invalid token - missing wordlist id')
     end
@@ -52,6 +68,12 @@ class WordlistEntriesController < ApplicationController
   end
 
   private
+
+  def get_wordlist_id_from_headers(request_headers)
+    request_headers['Authorization'].split(' ').last.then do |token|
+      decode_token(token)[0]['wordlist_id']
+    end
+  end
 
   def render_error_response(status, message)
     response.status = status

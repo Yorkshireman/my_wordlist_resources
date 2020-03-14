@@ -1,7 +1,4 @@
-require 'jwt'
 require 'rails_helper'
-require 'securerandom'
-
 require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe WordlistEntriesController do
@@ -11,11 +8,16 @@ RSpec.describe WordlistEntriesController do
   describe 'when request is valid' do
     before :each do
       Wordlist.destroy_all
+      WordlistEntry.destroy_all
+      Word.destroy_all
       @user_id = SecureRandom.uuid
-      Wordlist.create(user_id: @user_id)
-      token = generate_token(@user_id)
-      request.headers['Authorization'] = "Bearer #{token}"
-      request.headers['CONTENT_TYPE'] = 'application/json' # get RuntimeError Unknown Content-Type: application/vnd.api+json when using 'application/vnd.api+json'
+      @wordlist = Wordlist.create(user_id: @user_id).tap do |x|
+        token = generate_token(@user_id, x.id)
+        request.headers['Authorization'] = "Bearer #{token}"
+      end
+
+      # get RuntimeError Unknown Content-Type: application/vnd.api+json when using 'application/vnd.api+json'
+      request.headers['CONTENT_TYPE'] = 'application/json'
 
       freeze_time do
         time_now = Time.now
@@ -42,21 +44,33 @@ RSpec.describe WordlistEntriesController do
       end
     end
 
-    it 'is 201 status' do
+    it 'responds with 201 http status' do
       expect(response).to have_http_status(201)
     end
 
-    # it 'has correct body' do
-    #   expected_body = {
-    #     data: {
-    #       token: @time_frozen_token,
-    #       type: 'wordlist',
-    #       attributes: {}
-    #     }
-    #   }
+    it 'creates a Word' do
+      expect(Word.count).to eq(1)
+    end
 
-    #   actual_body = JSON.parse(response.body).deep_symbolize_keys
-    #   expect(actual_body).to eq(expected_body)
-    # end
+    it 'has correct body' do
+      expected_body = {
+        data: {
+          id: WordlistEntry.first.id,
+          token: @time_frozen_token,
+          type: 'wordlist-entry',
+          attributes: {
+            description: 'something to put things on',
+            word: {
+              id: Word.first.id,
+              name: 'table',
+              wordlist_ids: [@wordlist.id]
+            }
+          }
+        }
+      }
+
+      actual_body = JSON.parse(response.body).deep_symbolize_keys
+      expect(actual_body).to eq(expected_body)
+    end
   end
 end
