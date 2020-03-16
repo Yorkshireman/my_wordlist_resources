@@ -26,6 +26,11 @@ class WordlistEntriesController < ApplicationController
       },
       status: :created
     end
+
+    rescue ActiveRecord::RecordNotFound => e
+      render_error_response(404, e)
+    rescue JWT::DecodeError => e
+      render_error_response(400, e)
   end
 
   def index
