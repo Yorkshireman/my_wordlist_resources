@@ -49,13 +49,14 @@ class WordlistEntriesController < ApplicationController
       }
     end
 
-    token = generate_token(wordlist.user_id, wordlist.id)
-    render json: {
-      data: {
-        token: token,
-        wordlist_entries: wordlist_entries
+    generate_token(wordlist.user_id, wordlist.id).then do |token|
+      render json: {
+        data: {
+          token: token,
+          wordlist_entries: wordlist_entries
+        }
       }
-    }
+    end
 
     rescue ActiveRecord::RecordNotFound => e
       render_error_response(404, e)
