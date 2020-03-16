@@ -5,16 +5,9 @@ class WordlistEntriesController < ApplicationController
   include TokenHelper
 
   def create
-    wordlist_id = get_wordlist_id_from_headers(request.headers)
-    word = Word.find_by(wordlist_entry_params[:word]).then do |word|
-      word || Word.create(wordlist_entry_params[:word])
-    end
-
-    if wordlist_entry = WordlistEntry.create(
-      wordlist_id: wordlist_id,
-      word_id: word.id,
-      description: wordlist_entry_params[:description]
-    )
+    word = Word.find_by(wordlist_entry_params[:word]) || Word.create(wordlist_entry_params[:word])
+    get_wordlist_id_from_headers(request.headers).then do |wordlist_id|
+      wordlist_entry = WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: wordlist_entry_params[:description])
       token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
       render json: {
         data: {
