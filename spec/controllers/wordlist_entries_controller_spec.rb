@@ -4,20 +4,20 @@ require_relative '../../app/helpers/token_helper.rb'
 RSpec.describe WordlistEntriesController do
   include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
-
-  before :each do
-    Wordlist.destroy_all
-    WordlistEntry.destroy_all
-    Word.destroy_all
-    @user_id_1 = SecureRandom.uuid
-    @user_id_2 = SecureRandom.uuid
-  end
+  let(:user_id_1) { SecureRandom.uuid }
+  let(:user_id_2) { SecureRandom.uuid }
 
   describe 'when request is valid' do
+    before :each do
+      Wordlist.destroy_all
+      WordlistEntry.destroy_all
+      Word.destroy_all
+    end
+
     describe 'when Word does not already exist' do
       before :each do
-        @wordlist = Wordlist.create(user_id: @user_id_1).tap do |x|
-          token = generate_token(@user_id_1, x.id)
+        @wordlist = Wordlist.create(user_id: user_id_1).tap do |x|
+          token = generate_token(user_id_1, x.id)
           request.headers['Authorization'] = "Bearer #{token}"
         end
 
@@ -40,7 +40,7 @@ RSpec.describe WordlistEntriesController do
           @time_frozen_token = JWT.encode(
             {
               exp: (time_now + 1800).to_i,
-              user_id: @user_id_1,
+              user_id: user_id_1,
               wordlist_id: wordlist_id
             },
             ENV['JWT_SECRET_KEY'],
@@ -55,6 +55,10 @@ RSpec.describe WordlistEntriesController do
 
       it 'creates a Word' do
         expect(Word.count).to eq(1)
+      end
+
+      it 'creates a WordlistEntry' do
+        expect(WordlistEntry.count).to eq(1)
       end
 
       it 'has correct body' do
@@ -81,11 +85,11 @@ RSpec.describe WordlistEntriesController do
 
     describe 'when Word already exists' do
       before :each do
-        @wordlist_1 = Wordlist.create(user_id: @user_id_1).tap do |x|
-          generate_token(@user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
+        @wordlist_1 = Wordlist.create(user_id: user_id_1).tap do |x|
+          generate_token(user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
         end
 
-        @wordlist_2 = Wordlist.create(user_id: @user_id_2).tap do |wordlist|
+        @wordlist_2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
           @word = Word.create(name: 'table')
           WordlistEntry.create(wordlist_id: wordlist.id, word_id: @word.id, description: 'A flat platform with four legs, used to place objects on.')
         end
@@ -108,7 +112,7 @@ RSpec.describe WordlistEntriesController do
           @time_frozen_token = JWT.encode(
             {
               exp: (time_now + 1800).to_i,
-              user_id: @user_id_1,
+              user_id: user_id_1,
               wordlist_id: @wordlist_1.id
             },
             ENV['JWT_SECRET_KEY'],
@@ -123,6 +127,10 @@ RSpec.describe WordlistEntriesController do
 
       it 'does not create a Word' do
         expect(Word.count).to eq(1)
+      end
+
+      it 'creates a WordlistEntry' do
+        expect(WordlistEntry.count).to eq(2)
       end
 
       it 'has correct body' do
