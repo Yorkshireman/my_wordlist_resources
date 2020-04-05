@@ -4,9 +4,18 @@ class WordlistEntriesController < ApplicationController
   include TokenHelper
 
   def create
-    word = Word.find_by(wordlist_entry_params[:word]) || Word.create(wordlist_entry_params[:word])
+    if wordlist_entry_params[:word][:id]
+      @word = Word.find(wordlist_entry_params[:word][:id])
+    else
+      @word = Word.find_by(wordlist_entry_params[:word])
+    end
+
+    if @word.nil?
+      @word = Word.create(wordlist_entry_params[:word])
+    end
+
     get_wordlist_id_from_headers(request.headers).then do |wordlist_id|
-      wordlist_entry = WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: wordlist_entry_params[:description])
+      wordlist_entry = WordlistEntry.create(wordlist_id: wordlist_id, word_id: @word.id, description: wordlist_entry_params[:description])
       token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
       render json: {
         data: {
@@ -16,9 +25,9 @@ class WordlistEntriesController < ApplicationController
           attributes: {
             description: wordlist_entry.description,
             word: {
-              id: word.id,
-              name: word.name,
-              wordlist_ids: word.wordlist_ids
+              id: @word.id,
+              name: @word.name,
+              wordlist_ids: @word.wordlist_ids
             }
           }
         }
@@ -86,6 +95,6 @@ class WordlistEntriesController < ApplicationController
   end
 
   def wordlist_entry_params
-    params.require(:wordlist_entry).permit(:description, word: [:name])
+    params.require(:wordlist_entry).permit(:description, word: [:id, :name])
   end
 end

@@ -145,7 +145,7 @@ RSpec.describe WordlistEntriesController do
                 word: {
                   id: @word.id,
                   name: 'table',
-                  wordlist_ids: [@wordlist_2.id, @wordlist_1.id]
+                  wordlist_ids: [@wordlist_1.id, @wordlist_2.id]
                 }
               }
             }
@@ -153,6 +153,43 @@ RSpec.describe WordlistEntriesController do
 
           actual_body = JSON.parse(response.body).deep_symbolize_keys
           expect(actual_body).to eq(expected_body)
+        end
+
+        context 'when Word id only is provided in the request' do
+          before :each do
+            Wordlist.destroy_all
+            WordlistEntry.destroy_all
+            Word.destroy_all
+            @wordlist_1 = Wordlist.create(user_id: user_id_1).tap do |x|
+              generate_token(user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
+            end
+
+            @wordlist_2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
+              @word = Word.create(name: 'table')
+              WordlistEntry.create(wordlist_id: wordlist.id, word_id: @word.id, description: 'A flat platform with four legs, used to place objects on.')
+            end
+
+            # get RuntimeError Unknown Content-Type: application/vnd.api+json when using 'application/vnd.api+json'
+            request.headers['CONTENT_TYPE'] = 'application/json'
+            post :create, params: {
+              wordlist_entry: {
+                description: 'something to put things on',
+                word: {
+                  name: 'table',
+                  id: @word.id
+                }
+              },
+              format: :json
+            }
+          end
+
+          it 'responds with 201 http status' do
+            expect(response).to have_http_status(201)
+          end
+
+          it 'does not create a Word' do
+            expect(Word.count).to eq(1)
+          end
         end
       end
     end
