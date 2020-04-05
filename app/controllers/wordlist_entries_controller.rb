@@ -1,4 +1,3 @@
-require 'byebug'
 require_relative '../helpers/token_helper'
 
 class WordlistEntriesController < ApplicationController
