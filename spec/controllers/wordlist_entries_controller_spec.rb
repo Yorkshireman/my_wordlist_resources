@@ -122,6 +122,10 @@ RSpec.describe WordlistEntriesController do
           end
         end
 
+        after :each do
+          @wordlist_1.words.destroy_all
+        end
+
         it 'responds with 201 http status' do
           expect(response).to have_http_status(201)
         end
@@ -157,20 +161,6 @@ RSpec.describe WordlistEntriesController do
 
         context 'when Word id only is provided in the request' do
           before :each do
-            Wordlist.destroy_all
-            WordlistEntry.destroy_all
-            Word.destroy_all
-            @wordlist_1 = Wordlist.create(user_id: user_id_1).tap do |x|
-              generate_token(user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
-            end
-
-            @wordlist_2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
-              @word = Word.create(name: 'table')
-              WordlistEntry.create(wordlist_id: wordlist.id, word_id: @word.id, description: 'A flat platform with four legs, used to place objects on.')
-            end
-
-            # get RuntimeError Unknown Content-Type: application/vnd.api+json when using 'application/vnd.api+json'
-            request.headers['CONTENT_TYPE'] = 'application/json'
             post :create, params: {
               wordlist_entry: {
                 description: 'something to put things on',
