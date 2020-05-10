@@ -159,13 +159,12 @@ RSpec.describe WordlistEntriesController do
           expect(actual_body).to eq(expected_body)
         end
 
-        context 'when Word id only is provided in the request' do
+        context 'when Word name is not provided in the request' do
           before :each do
             post :create, params: {
               wordlist_entry: {
                 description: 'something to put things on',
                 word: {
-                  name: 'table',
                   id: @word.id
                 }
               },
@@ -180,6 +179,66 @@ RSpec.describe WordlistEntriesController do
           it 'does not create a Word' do
             expect(Word.count).to eq(1)
           end
+
+          it 'creates a WordlistEntry' do
+            expect(WordlistEntry.count).to eq(3)
+          end
+        end
+
+        context 'when description is not provided in the request' do
+          before :each do
+            post :create, params: {
+              wordlist_entry: {
+                word: {
+                  id: @word.id
+                }
+              },
+              format: :json
+            }
+          end
+
+          it 'responds with 201 http status' do
+            expect(response).to have_http_status(201)
+          end
+
+          it 'does not create a Word' do
+            expect(Word.count).to eq(1)
+          end
+
+          it 'creates a WordlistEntry' do
+            expect(WordlistEntry.count).to eq(3)
+          end
+        end
+      end
+    end
+
+    describe 'when request is invalid' do
+      before :each do
+        Wordlist.destroy_all
+        WordlistEntry.destroy_all
+        Word.destroy_all
+      end
+
+      context 'when no Word attributes are provided in request' do
+        before :each do
+          post :create, params: {
+            wordlist_entry: {
+              word: {}
+            },
+            format: :json
+          }
+        end
+
+        it 'responds with 400 http status' do
+          expect(response).to have_http_status(400)
+        end
+
+        it 'does not create a Word' do
+          expect(Word.count).to eq(0)
+        end
+
+        it 'does not create a WordlistEntry' do
+          expect(WordlistEntry.count).to eq(0)
         end
       end
     end

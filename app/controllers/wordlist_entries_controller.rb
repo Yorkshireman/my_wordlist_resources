@@ -39,6 +39,8 @@ class WordlistEntriesController < ApplicationController
       render_error_response(404, e)
     rescue JWT::DecodeError => e
       render_error_response(400, e)
+    rescue ActionController::ParameterMissing => e
+      render_error_response(400, e)
   end
 
   def index
