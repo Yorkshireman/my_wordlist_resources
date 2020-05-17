@@ -21,12 +21,12 @@ RSpec.describe 'POST /wordlists response', type: :request do
       freeze_time do
         time_now = Time.now
         post '/wordlists', headers: headers
-        @wordlist_id = Wordlist.first.id
+        wordlist_id = Wordlist.first.id
         @time_frozen_token = JWT.encode(
           {
             exp: (time_now + 1800).to_i,
             user_id: @user_id,
-            wordlist_id: @wordlist_id
+            wordlist_id: wordlist_id
           },
           ENV['JWT_SECRET_KEY'],
           'HS256'
