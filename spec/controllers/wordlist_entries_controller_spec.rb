@@ -7,11 +7,14 @@ RSpec.describe WordlistEntriesController do
   let(:user_id_1) { SecureRandom.uuid }
   let(:user_id_2) { SecureRandom.uuid }
 
+  before :each do
+    Wordlist.destroy_all
+    WordlistEntry.destroy_all
+    Word.destroy_all
+  end
+
   describe '#index' do
     before :each do
-      Wordlist.destroy_all
-      WordlistEntry.destroy_all
-      Word.destroy_all
       words = []
       Wordlist.create(user_id: user_id_1).tap do |wordlist|
         ['foo', 'fizz', 'buzz'].each { |word| Word.create(name: word).then { |w| words << w } }
@@ -32,12 +35,6 @@ RSpec.describe WordlistEntriesController do
 
   describe '#create' do
     context 'when request is valid' do
-      before :each do
-        Wordlist.destroy_all
-        WordlistEntry.destroy_all
-        Word.destroy_all
-      end
-
       context 'when Word does not already exist' do
         before :each do
           @wordlist = Wordlist.create(user_id: user_id_1).tap do |x|
@@ -233,12 +230,6 @@ RSpec.describe WordlistEntriesController do
     end
 
     context 'when request is invalid' do
-      before :each do
-        Wordlist.destroy_all
-        WordlistEntry.destroy_all
-        Word.destroy_all
-      end
-
       context 'when no Word attributes are provided in request' do
         before :each do
           post :create, params: {

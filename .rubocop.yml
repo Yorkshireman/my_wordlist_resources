@@ -1,0 +1,36 @@
+require: rubocop-performance
+
+AllCops:
+  Exclude:
+    - db/schema.rb
+
+inherit_mode:
+  merge:
+    - Exclude
+
+Metrics/LineLength:
+  Max: 120
+
+Layout/FirstHashElementIndentation:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/MixinUsage:
+  Enabled: false
+
+Style/NegatedIf:
+  Enabled: false
+
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
