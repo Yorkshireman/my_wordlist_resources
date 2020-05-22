@@ -7,23 +7,44 @@ RSpec.describe WordlistEntriesController do
   let(:user_id_1) { SecureRandom.uuid }
   let(:user_id_2) { SecureRandom.uuid }
 
+  describe '#index' do
+    before :each do
+      Wordlist.destroy_all
+      WordlistEntry.destroy_all
+      Word.destroy_all
+      words = []
+      Wordlist.create(user_id: user_id_1).tap do |wordlist|
+        ['foo', 'fizz', 'buzz'].each { |word| Word.create(name: word).then { |w| words << w } }
+        words.each { |word| WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar') }
+        token = generate_token(user_id_1, wordlist.id)
+        request.headers['Authorization'] = "Bearer #{token}"
+        request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
+      end
+      get :index, format: :json
+    end
+
+    it 'orders WordlistEntries by created_at attribute by newest first' do
+      words_from_response = JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].map { |entry| entry[:attributes][:word] }
+      expect(words_from_response.first[:name]).to eq('buzz')
+      expect(words_from_response.last[:name]).to eq('foo')
+    end
+  end
+
   describe '#create' do
-    describe 'when request is valid' do
+    context 'when request is valid' do
       before :each do
         Wordlist.destroy_all
         WordlistEntry.destroy_all
         Word.destroy_all
       end
 
-      describe 'when Word does not already exist' do
+      context 'when Word does not already exist' do
         before :each do
           @wordlist = Wordlist.create(user_id: user_id_1).tap do |x|
             token = generate_token(user_id_1, x.id)
             request.headers['Authorization'] = "Bearer #{token}"
+            request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
           end
-
-          # get RuntimeError Unknown Content-Type: application/vnd.api+json when using 'application/vnd.api+json'
-          request.headers['CONTENT_TYPE'] = 'application/json'
 
           freeze_time do
             time_now = Time.now
@@ -84,7 +105,7 @@ RSpec.describe WordlistEntriesController do
         end
       end
 
-      describe 'when Word already exists' do
+      context 'when Word already exists' do
         before :each do
           @wordlist_1 = Wordlist.create(user_id: user_id_1).tap do |x|
             generate_token(user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
@@ -95,8 +116,7 @@ RSpec.describe WordlistEntriesController do
             WordlistEntry.create(wordlist_id: wordlist.id, word_id: @word.id, description: 'A flat platform with four legs, used to place objects on.')
           end
 
-          # get RuntimeError Unknown Content-Type: application/vnd.api+json when using 'application/vnd.api+json'
-          request.headers['CONTENT_TYPE'] = 'application/json'
+          request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
 
           freeze_time do
             time_now = Time.now
@@ -212,7 +232,7 @@ RSpec.describe WordlistEntriesController do
       end
     end
 
-    describe 'when request is invalid' do
+    context 'when request is invalid' do
       before :each do
         Wordlist.destroy_all
         WordlistEntry.destroy_all

@@ -50,8 +50,7 @@ class WordlistEntriesController < ApplicationController
     end
 
     wordlist = Wordlist.find(wordlist_id)
-
-    wordlist_entries = wordlist.wordlist_entries.map do |wordlist_entry|
+    wordlist_entries = wordlist.wordlist_entries.reverse.map do |wordlist_entry|
       {
         attributes: {
           word: {

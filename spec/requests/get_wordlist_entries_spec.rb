@@ -56,21 +56,21 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
             {
               attributes: {
                 word: {
-                  id: @word.id,
-                  name: 'capable',
-                  wordlist_ids: [@wordlist_id]
-                },
-                description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
-              }
-            },
-            {
-              attributes: {
-                word: {
                   id: @word2.id,
                   name: 'rot',
                   wordlist_ids: [@wordlist_id]
                 },
                 description: 'the process of decaying'
+              }
+            },
+            {
+              attributes: {
+                word: {
+                  id: @word.id,
+                  name: 'capable',
+                  wordlist_ids: [@wordlist_id]
+                },
+                description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
               }
             }
           ]
