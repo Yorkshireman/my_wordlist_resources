@@ -65,6 +65,8 @@ RSpec.describe WordlistEntriesController do
               ENV['JWT_SECRET_KEY'],
               'HS256'
             )
+
+            @wordlist_entry_created_at = @wordlist.wordlist_entries.last.created_at
           end
         end
 
@@ -87,6 +89,7 @@ RSpec.describe WordlistEntriesController do
               token: @time_frozen_token,
               type: 'wordlist-entry',
               attributes: {
+                created_at: JSON.parse(@wordlist_entry_created_at.to_json),
                 description: 'something to put things on',
                 word: {
                   id: Word.first.id,
@@ -136,6 +139,8 @@ RSpec.describe WordlistEntriesController do
               ENV['JWT_SECRET_KEY'],
               'HS256'
             )
+
+            @wordlist_entry_created_at = @wordlist_1.wordlist_entries.last.created_at
           end
         end
 
@@ -162,6 +167,7 @@ RSpec.describe WordlistEntriesController do
               token: @time_frozen_token,
               type: 'wordlist-entry',
               attributes: {
+                created_at: JSON.parse(@wordlist_entry_created_at.to_json),
                 description: 'something to put things on',
                 word: {
                   id: @word.id,
