@@ -29,7 +29,7 @@ class WordlistEntriesController < ApplicationController
     end
 
     wordlist = Wordlist.find(wordlist_id)
-    wordlist_entries = wordlist.wordlist_entries.reverse
+    wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
 
     generate_token(wordlist.user_id, wordlist.id).then do |token|
       render json: {
@@ -42,7 +42,6 @@ class WordlistEntriesController < ApplicationController
   end
 
   private
-
 
   def create_wordlist_entry(wordlist_id, word)
     WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: wordlist_entry_params[:description])
@@ -84,6 +83,7 @@ class WordlistEntriesController < ApplicationController
         name: wordlist_entry_word.name,
         wordlist_ids: wordlist_entry_word.wordlist_ids
       },
+      created_at: wordlist_entry.created_at,
       description: wordlist_entry.description
     }
   end

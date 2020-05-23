@@ -8,10 +8,16 @@ inherit_mode:
   merge:
     - Exclude
 
+Layout/FirstHashElementIndentation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
 Metrics/LineLength:
   Max: 120
 
-Layout/FirstHashElementIndentation:
+Metrics/MethodLength:
   Enabled: false
 
 Style/Documentation:
