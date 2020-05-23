@@ -30,6 +30,7 @@ group :development, :test do
 end
 
 group :development do
+  gem 'awesome_print'
   gem 'listen', '>= 3.0.5', '< 3.2'
   gem 'rubocop-performance'
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
