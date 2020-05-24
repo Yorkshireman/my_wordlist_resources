@@ -182,7 +182,7 @@ RSpec.describe WordlistEntriesController do
 
           actual_body = JSON.parse(response.body).deep_symbolize_keys
 
-          # to get around problems in Travis with long diffs due to tokens
+          # to produce shorter diffs for easier debugging in Travis CI
           expected_body[:data].delete(:token)
           actual_body[:data].delete(:token)
 
