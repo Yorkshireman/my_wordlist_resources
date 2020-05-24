@@ -62,11 +62,7 @@ RSpec.describe WordlistEntriesController do
 
           wordlist_id = Wordlist.first.id
           @token = JWT.encode(
-            {
-              exp: (1_590_331_503 + 1800).to_i,
-              user_id: user_id_1,
-              wordlist_id: wordlist_id
-            },
+            { user_id: user_id_1, wordlist_id: wordlist_id },
             ENV['JWT_SECRET_KEY'],
             'HS256'
           )
@@ -137,11 +133,7 @@ RSpec.describe WordlistEntriesController do
           }
 
           @token = JWT.encode(
-            {
-              exp: (1_590_331_503 + 1800).to_i,
-              user_id: user_id_1,
-              wordlist_id: @wordlist1.id
-            },
+            { user_id: user_id_1, wordlist_id: @wordlist1.id },
             ENV['JWT_SECRET_KEY'],
             'HS256'
           )

@@ -21,11 +21,7 @@ RSpec.describe 'POST /wordlists response', type: :request do
       post '/wordlists', headers: headers
       wordlist_id = Wordlist.first.id
       @token = JWT.encode(
-        {
-          exp: (1_590_331_503 + 1800).to_i,
-          user_id: @user_id,
-          wordlist_id: wordlist_id
-        },
+        { user_id: @user_id, wordlist_id: wordlist_id },
         ENV['JWT_SECRET_KEY'],
         'HS256'
       )

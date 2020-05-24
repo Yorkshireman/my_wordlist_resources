@@ -2,12 +2,20 @@ require 'jwt'
 
 module TokenHelper
   def decode_token(token)
-    JWT.decode(token, ENV['JWT_SECRET_KEY'], true, { algorithm: 'HS256' })
+    token = JWT.decode(token, ENV['JWT_SECRET_KEY'], true, { algorithm: 'HS256' })
+    # return token[0...100] if ENV['RAILS_ENV'] == 'test'
+
+    token
   end
 
   def generate_token(user_id, wordlist_id = nil)
     secret_key = ENV['JWT_SECRET_KEY']
-    time_now = ENV['RAILS_ENV'] == 'test' ? 1_590_331_503 : Time.now
-    JWT.encode({ exp: (time_now + 1800).to_i, user_id: user_id, wordlist_id: wordlist_id }, secret_key, 'HS256')
+    payload = if ENV['RAILS_ENV'] == 'test'
+                { user_id: user_id, wordlist_id: wordlist_id }
+              else
+                { exp: (time_now + 1800).to_i, user_id: user_id, wordlist_id: wordlist_id }
+              end
+
+    JWT.encode(payload, secret_key, 'HS256')
   end
 end
