@@ -18,20 +18,17 @@ RSpec.describe 'POST /wordlists response', type: :request do
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      freeze_time do
-        time_now = Time.now
-        post '/wordlists', headers: headers
-        wordlist_id = Wordlist.first.id
-        @time_frozen_token = JWT.encode(
-          {
-            exp: (time_now + 1800).to_i,
-            user_id: @user_id,
-            wordlist_id: wordlist_id
-          },
-          ENV['JWT_SECRET_KEY'],
-          'HS256'
-        )
-      end
+      post '/wordlists', headers: headers
+      wordlist_id = Wordlist.first.id
+      @token = JWT.encode(
+        {
+          exp: (1_590_331_503 + 1800).to_i,
+          user_id: @user_id,
+          wordlist_id: wordlist_id
+        },
+        ENV['JWT_SECRET_KEY'],
+        'HS256'
+      )
     end
 
     it 'is 201 status' do
@@ -41,7 +38,7 @@ RSpec.describe 'POST /wordlists response', type: :request do
     it 'has correct body' do
       expected_body = {
         data: {
-          token: @time_frozen_token,
+          token: @token,
           type: 'wordlist',
           attributes: {}
         }

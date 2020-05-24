@@ -39,20 +39,19 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
       freeze_time do
         create_wordlist_entries
-        time_now = Time.now
         get '/wordlist_entries', headers: headers
-        @time_frozen_token = JWT.encode(
+        @token = JWT.encode(
           {
-            exp: (time_now + 1800).to_i,
+            exp: (1_590_331_503 + 1800).to_i,
             user_id: @user_id,
             wordlist_id: @wordlist_id
           },
           ENV['JWT_SECRET_KEY'],
           'HS256'
         )
-
-        @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
       end
+
+      @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
     end
 
     it 'is 200 status' do
@@ -62,7 +61,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
     it 'has correct body' do
       expected_body = {
         data: {
-          token: @time_frozen_token,
+          token: @token,
           wordlist_entries: [
             {
               attributes: {

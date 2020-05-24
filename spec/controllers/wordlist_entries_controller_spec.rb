@@ -50,31 +50,28 @@ RSpec.describe WordlistEntriesController do
             request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
           end
 
-          freeze_time do
-            time_now = Time.now
-            post :create, params: {
-              wordlist_entry: {
-                description: 'something to put things on',
-                word: {
-                  name: 'table'
-                }
-              },
-              format: :json
-            }
+          post :create, params: {
+            wordlist_entry: {
+              description: 'something to put things on',
+              word: {
+                name: 'table'
+              }
+            },
+            format: :json
+          }
 
-            wordlist_id = Wordlist.first.id
-            @time_frozen_token = JWT.encode(
-              {
-                exp: (time_now + 1800).to_i,
-                user_id: user_id_1,
-                wordlist_id: wordlist_id
-              },
-              ENV['JWT_SECRET_KEY'],
-              'HS256'
-            )
+          wordlist_id = Wordlist.first.id
+          @token = JWT.encode(
+            {
+              exp: (1_590_331_503 + 1800).to_i,
+              user_id: user_id_1,
+              wordlist_id: wordlist_id
+            },
+            ENV['JWT_SECRET_KEY'],
+            'HS256'
+          )
 
-            @wordlist_entry_created_at = @wordlist.wordlist_entries.last.created_at
-          end
+          @wordlist_entry_created_at = @wordlist.wordlist_entries.last.created_at
         end
 
         it 'responds with 201 http status' do
@@ -93,7 +90,7 @@ RSpec.describe WordlistEntriesController do
           expected_body = {
             data: {
               id: WordlistEntry.first.id,
-              token: @time_frozen_token,
+              token: @token,
               type: 'wordlist-entry',
               attributes: {
                 created_at: JSON.parse(@wordlist_entry_created_at.to_json),
@@ -129,30 +126,27 @@ RSpec.describe WordlistEntriesController do
 
           request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
 
-          freeze_time do
-            time_now = Time.now
-            post :create, params: {
-              wordlist_entry: {
-                description: 'something to put things on',
-                word: {
-                  name: 'table'
-                }
-              },
-              format: :json
-            }
+          post :create, params: {
+            wordlist_entry: {
+              description: 'something to put things on',
+              word: {
+                name: 'table'
+              }
+            },
+            format: :json
+          }
 
-            @time_frozen_token = JWT.encode(
-              {
-                exp: (time_now + 1800).to_i,
-                user_id: user_id_1,
-                wordlist_id: @wordlist1.id
-              },
-              ENV['JWT_SECRET_KEY'],
-              'HS256'
-            )
+          @token = JWT.encode(
+            {
+              exp: (1_590_331_503 + 1800).to_i,
+              user_id: user_id_1,
+              wordlist_id: @wordlist1.id
+            },
+            ENV['JWT_SECRET_KEY'],
+            'HS256'
+          )
 
-            @wordlist_entry_created_at = @wordlist1.wordlist_entries.last.created_at
-          end
+          @wordlist_entry_created_at = @wordlist1.wordlist_entries.last.created_at
         end
 
         after :each do
@@ -174,8 +168,8 @@ RSpec.describe WordlistEntriesController do
         it 'has correct body' do
           expected_body = {
             data: {
-              id: WordlistEntry.first.id,
-              token: @time_frozen_token,
+              id: WordlistEntry.second.id,
+              token: @token,
               type: 'wordlist-entry',
               attributes: {
                 created_at: JSON.parse(@wordlist_entry_created_at.to_json),
