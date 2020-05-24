@@ -3,6 +3,11 @@ language: ruby
 rvm:
  - 2.6.5
 
-script:
+before_install:
   - bundle exec rubocop
+
+before_script:
+  - bundle install
+
+script:
   - bundle exec rake spec
