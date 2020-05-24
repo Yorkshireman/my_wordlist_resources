@@ -15,19 +15,26 @@ RSpec.describe WordlistEntriesController do
 
   describe '#index' do
     before :each do
-      words = []
       Wordlist.create(user_id: user_id_1).tap do |wordlist|
-        ['foo', 'fizz', 'buzz'].each { |word| Word.create(name: word).then { |w| words << w } }
-        words.each { |word| WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar') }
+        %w[foo fizz buzz].each do |word_name|
+          Word.create(name: word_name).tap do |word|
+            WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
+          end
+        end
+
         token = generate_token(user_id_1, wordlist.id)
         request.headers['Authorization'] = "Bearer #{token}"
         request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
       end
+
       get :index, format: :json
     end
 
     it 'orders WordlistEntries by created_at attribute by newest first' do
-      words_from_response = JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].map { |entry| entry[:attributes][:word] }
+      words_from_response = JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].map do |entry|
+        entry[:attributes][:word]
+      end
+
       expect(words_from_response.first[:name]).to eq('buzz')
       expect(words_from_response.last[:name]).to eq('foo')
     end
@@ -107,13 +114,17 @@ RSpec.describe WordlistEntriesController do
 
       context 'when Word already exists' do
         before :each do
-          @wordlist_1 = Wordlist.create(user_id: user_id_1).tap do |x|
+          @wordlist1 = Wordlist.create(user_id: user_id_1).tap do |x|
             generate_token(user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
           end
 
-          @wordlist_2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
+          @wordlist2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
             @word = Word.create(name: 'table')
-            WordlistEntry.create(wordlist_id: wordlist.id, word_id: @word.id, description: 'A flat platform with four legs, used to place objects on.')
+            WordlistEntry.create(
+              wordlist_id: wordlist.id,
+              word_id: @word.id,
+              description: 'A flat platform with four legs, used to place objects on.'
+            )
           end
 
           request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
@@ -134,18 +145,18 @@ RSpec.describe WordlistEntriesController do
               {
                 exp: (time_now + 1800).to_i,
                 user_id: user_id_1,
-                wordlist_id: @wordlist_1.id
+                wordlist_id: @wordlist1.id
               },
               ENV['JWT_SECRET_KEY'],
               'HS256'
             )
 
-            @wordlist_entry_created_at = @wordlist_1.wordlist_entries.last.created_at
+            @wordlist_entry_created_at = @wordlist1.wordlist_entries.last.created_at
           end
         end
 
         after :each do
-          @wordlist_1.words.destroy_all
+          @wordlist1.words.destroy_all
         end
 
         it 'responds with 201 http status' do
@@ -172,7 +183,7 @@ RSpec.describe WordlistEntriesController do
                 word: {
                   id: @word.id,
                   name: 'table',
-                  wordlist_ids: [@wordlist_1.id, @wordlist_2.id]
+                  wordlist_ids: [@wordlist1.id, @wordlist2.id]
                 }
               }
             }

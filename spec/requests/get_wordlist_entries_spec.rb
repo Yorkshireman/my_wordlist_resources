@@ -12,7 +12,12 @@ end
 def create_wordlist_entries
   @word = Word.create(name: 'capable')
   @word2 = Word.create(name: 'rot')
-  WordlistEntry.create(word_id: @word.id, wordlist_id: @wordlist_id, description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing')
+  WordlistEntry.create(
+    word_id: @word.id,
+    wordlist_id: @wordlist_id,
+    description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
+  )
+
   WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
 end
 
@@ -46,7 +51,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
           'HS256'
         )
 
-        @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map { |e| e.created_at }
+        @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
       end
     end
 

@@ -77,7 +77,7 @@ RSpec.describe 'GET /wordlist response', type: :request do
       end
 
       it 'returned token includes wordlist_id' do
-        actual_token = (JSON.parse(response.body).deep_symbolize_keys)[:data][:token]
+        actual_token = JSON.parse(response.body).deep_symbolize_keys[:data][:token]
         expect(actual_token).to eq(@time_frozen_token)
       end
     end
