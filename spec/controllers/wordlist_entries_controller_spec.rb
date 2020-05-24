@@ -174,7 +174,7 @@ RSpec.describe WordlistEntriesController do
                 word: {
                   id: @word.id,
                   name: 'table',
-                  wordlist_ids: [@wordlist1.id, @wordlist2.id]
+                  wordlist_ids: [@wordlist2.id, @wordlist1.id]
                 }
               }
             }
