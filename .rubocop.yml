@@ -11,11 +11,11 @@ inherit_mode:
 Layout/FirstHashElementIndentation:
   Enabled: false
 
+Layout/LineLength:
+  Max: 120
+
 Metrics/BlockLength:
   Enabled: false
-
-Metrics/LineLength:
-  Max: 120
 
 Metrics/MethodLength:
   Enabled: false

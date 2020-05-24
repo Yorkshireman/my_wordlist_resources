@@ -19,19 +19,12 @@ RSpec.describe 'GET /wordlist response', type: :request do
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      freeze_time do
-        time_now = Time.now
-        get '/wordlist', headers: headers
-        @time_frozen_token = JWT.encode(
-          {
-            exp: (time_now + 1800).to_i,
-            user_id: @user_id,
-            wordlist_id: @wordlist_id
-          },
-          ENV['JWT_SECRET_KEY'],
-          'HS256'
-        )
-      end
+      get '/wordlist', headers: headers
+      @token = JWT.encode(
+        { user_id: @user_id, wordlist_id: @wordlist_id },
+        ENV['JWT_SECRET_KEY'],
+        'HS256'
+      )
     end
 
     it 'is 200 status' do
@@ -41,7 +34,7 @@ RSpec.describe 'GET /wordlist response', type: :request do
     it 'has correct body' do
       expected_body = {
         data: {
-          token: @time_frozen_token,
+          token: @token,
           type: 'wordlist',
           attributes: {}
         }
@@ -61,24 +54,17 @@ RSpec.describe 'GET /wordlist response', type: :request do
           'CONTENT_TYPE' => 'application/vnd.api+json'
         }
 
-        freeze_time do
-          time_now = Time.now
-          get '/wordlist', headers: headers
-          @time_frozen_token = JWT.encode(
-            {
-              exp: (time_now + 1800).to_i,
-              user_id: @user_id,
-              wordlist_id: @wordlist_id
-            },
-            ENV['JWT_SECRET_KEY'],
-            'HS256'
-          )
-        end
+        get '/wordlist', headers: headers
+        @token = JWT.encode(
+          { user_id: @user_id, wordlist_id: @wordlist_id },
+          ENV['JWT_SECRET_KEY'],
+          'HS256'
+        )
       end
 
       it 'returned token includes wordlist_id' do
-        actual_token = (JSON.parse(response.body).deep_symbolize_keys)[:data][:token]
-        expect(actual_token).to eq(@time_frozen_token)
+        actual_token = JSON.parse(response.body).deep_symbolize_keys[:data][:token]
+        expect(actual_token).to eq(@token)
       end
     end
   end

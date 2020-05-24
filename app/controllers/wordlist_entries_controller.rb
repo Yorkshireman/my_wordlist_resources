@@ -6,7 +6,7 @@ class WordlistEntriesController < ApplicationController
   def create
     word = find_or_create_word(wordlist_entry_params)
 
-    get_wordlist_id_from_headers.then do |wordlist_id|
+    parse_wordlist_id_from_headers.then do |wordlist_id|
       wordlist_entry = create_wordlist_entry(wordlist_id, word)
       token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
 
@@ -17,13 +17,12 @@ class WordlistEntriesController < ApplicationController
           id: wordlist_entry.id,
           attributes: parse_wordlist_entry(wordlist_entry, word)
         }
-      },
-      status: :created
+      }, status: :created
     end
   end
 
   def index
-    wordlist_id = get_wordlist_id_from_headers
+    wordlist_id = parse_wordlist_id_from_headers
     unless wordlist_id
       return render_error_response(400, 'Invalid token - missing wordlist id')
     end
@@ -48,20 +47,16 @@ class WordlistEntriesController < ApplicationController
   end
 
   def find_or_create_word(wordlist_entry_params)
-    if wordlist_entry_params[:word][:id]
-      word = Word.find(wordlist_entry_params[:word][:id])
-    else
-      word = Word.find_by(wordlist_entry_params[:word])
-    end
+    word = if wordlist_entry_params[:word][:id]
+             Word.find(wordlist_entry_params[:word][:id])
+           else
+             Word.find_by(wordlist_entry_params[:word])
+           end
 
-    if word.nil?
-      word = Word.create(wordlist_entry_params[:word])
-    end
-
-    word
+    word || Word.create(wordlist_entry_params[:word])
   end
 
-  def get_wordlist_id_from_headers
+  def parse_wordlist_id_from_headers
     request.headers['Authorization'].split(' ').last.then do |token|
       decode_token(token)[0]['wordlist_id']
     end

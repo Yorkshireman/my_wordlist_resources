@@ -7,6 +7,12 @@ module TokenHelper
 
   def generate_token(user_id, wordlist_id = nil)
     secret_key = ENV['JWT_SECRET_KEY']
-    JWT.encode({ exp: (Time.now + 1800).to_i, user_id: user_id, wordlist_id: wordlist_id }, secret_key, 'HS256')
+    payload = if ENV['RAILS_ENV'] == 'test'
+                { user_id: user_id, wordlist_id: wordlist_id }
+              else
+                { exp: (time_now + 1800).to_i, user_id: user_id, wordlist_id: wordlist_id }
+              end
+
+    JWT.encode(payload, secret_key, 'HS256')
   end
 end

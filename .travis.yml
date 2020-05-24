@@ -1,0 +1,17 @@
+language: ruby
+
+rvm:
+ - 2.6.5
+
+before_script:
+  - bundle install
+  - psql -c 'create database my_wordlist_resources_test;' -U postgres
+  - bundle exec rake db:create
+  - bundle exec rake db:migrate
+
+services:
+  - postgresql
+
+script:
+  - bundle exec rubocop
+  - bundle exec rake spec

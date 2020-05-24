@@ -6,12 +6,12 @@
 # Read more: https://github.com/cyu/rack-cors
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  cors_urls = ENV['CORS_URLS'] || ''
   allow do
-    origins ENV['CORS_URLS'].split(','),
-            /https:\/\/mywordlist-[a-z0-9-]+.herokuapp.com/ # for Heroku review apps (second half of those urls are randomly generated)
+    origins cors_urls.split(','),
+            /https:\/\/mywordlist-[a-z0-9-]+.herokuapp.com/
+    # for Heroku review apps (second half of those urls are randomly generated)
 
-    resource '*',
-      headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options]
+    resource '*', headers: :any, methods: [:get, :post, :put, :patch, :delete, :options]
   end
 end

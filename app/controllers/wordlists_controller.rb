@@ -6,9 +6,26 @@ class WordlistsController < ApplicationController
     token = request.headers['Authorization'].split(' ').last
     user_id = decode_token(token)[0]['user_id']
     wordlist = Wordlist.new(user_id: user_id)
-    if wordlist.save
-      token = generate_token(user_id, wordlist.id)
-      response.status = 201
+    return unless wordlist.save
+
+    response.status = 201
+    render json: {
+      data: {
+        token: generate_token(user_id, wordlist.id),
+        type: 'wordlist',
+        attributes: {}
+      }
+    }
+  end
+
+  def show
+    ids = request.headers['Authorization'].split(' ').last.then do |token|
+      parse_ids_from_token(token)
+    end
+
+    wordlist_id = find_wordlist_id(ids)
+
+    generate_token(ids[:user_id], wordlist_id).then do |token|
       render json: {
         data: {
           token: token,
@@ -19,8 +36,13 @@ class WordlistsController < ApplicationController
     end
   end
 
-  def show
-    token = request.headers['Authorization'].split(' ').last
+  private
+
+  def find_wordlist_id(ids)
+    ids[:wordlist_id] ? Wordlist.find(ids[:wordlist_id]).id : Wordlist.find_by!(user_id: ids[:user_id]).id
+  end
+
+  def parse_ids_from_token(token)
     decoded_token = decode_token(token)[0]
     user_id = decoded_token['user_id']
     wordlist_id = decoded_token['wordlist_id']
@@ -28,26 +50,8 @@ class WordlistsController < ApplicationController
       return render_error_response(400, 'Invalid token')
     end
 
-    wordlist = wordlist_id ? Wordlist.find(wordlist_id) : Wordlist.find_by!(user_id: user_id)
-    # serialised_wordlist = JSON.parse(wordlist.to_json).symbolize_keys
-
-    generate_token(user_id, wordlist.id).then do |token|
-      render json: {
-        data: {
-          token: token,
-          type: 'wordlist',
-          attributes: {}
-        }
-      }
-    end
-
-    rescue ActiveRecord::RecordNotFound => e
-      render_error_response(404, e)
-    rescue JWT::DecodeError => e
-      render_error_response(400, e)
+    { user_id: user_id, wordlist_id: wordlist_id }
   end
-
-  private
 
   def render_error_response(status, message)
     response.status = status
