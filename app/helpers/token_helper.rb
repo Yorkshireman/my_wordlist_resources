@@ -2,10 +2,7 @@ require 'jwt'
 
 module TokenHelper
   def decode_token(token)
-    token = JWT.decode(token, ENV['JWT_SECRET_KEY'], true, { algorithm: 'HS256' })
-    # return token[0...100] if ENV['RAILS_ENV'] == 'test'
-
-    token
+    JWT.decode(token, ENV['JWT_SECRET_KEY'], true, { algorithm: 'HS256' })
   end
 
   def generate_token(user_id, wordlist_id = nil)
