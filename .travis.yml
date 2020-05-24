@@ -5,7 +5,10 @@ rvm:
 
 before_script:
   - bundle install
-  - bundle exec rake db:migrate RAILS_ENV=test
+  - bundle exec rake db:migrate
+
+services:
+  - postgresql
 
 script:
   - bundle exec rubocop
