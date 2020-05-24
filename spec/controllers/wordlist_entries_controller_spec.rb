@@ -157,6 +157,11 @@ RSpec.describe WordlistEntriesController do
           expect(WordlistEntry.count).to eq(2)
         end
 
+        it 'token is correct' do
+          actual_body = JSON.parse(response.body).deep_symbolize_keys
+          expect(actual_body[:data][:token]).to eq(@token)
+        end
+
         it 'has correct body' do
           expected_body = {
             data: {
