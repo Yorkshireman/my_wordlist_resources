@@ -3,15 +3,25 @@ require_relative '../helpers/token_helper'
 class WordlistEntriesController < ApplicationController
   include TokenHelper
 
+  # rubocop:disable Metrics/AbcSize
   def create
-    word = find_or_create_word(wordlist_entry_params)
+    if request.headers['Authorization'].nil?
+      return render_error_response(401, 'missing Authorization header')
+    end
+
+    user_id = parse_user_id_from_headers(request.headers)
     @wordlist_id = wordlist_params[:wordlist_id]
+    wordlist = Wordlist.find(@wordlist_id)
+    if wordlist.user_id != user_id
+      return render_error_response(400, 'wordlist_id does not belong to user_id')
+    end
+
+    word = find_or_create_word(wordlist_entry_params)
     wordlist_entry = create_wordlist_entry(@wordlist_id, word)
-    token = Wordlist.find(@wordlist_id).then { |wl| generate_token(wl.user_id) }
 
     render json: {
       data: {
-        token: token,
+        token: generate_token(wordlist.user_id),
         type: 'wordlist-entry',
         id: wordlist_entry.id,
         attributes: parse_wordlist_entry(wordlist_entry, word)
@@ -22,10 +32,16 @@ class WordlistEntriesController < ApplicationController
   def index
     @wordlist_id = wordlist_params[:wordlist_id]
     unless @wordlist_id
-      return render_error_response(400, 'Invalid token - missing wordlist id')
+      return render_error_response(400, 'missing wordlist id')
     end
 
     wordlist = Wordlist.find(@wordlist_id)
+    user_id = parse_user_id_from_headers(request.headers)
+
+    if wordlist.user_id != user_id
+      return render_error_response(400, 'wordlist_id does not belong to user_id')
+    end
+
     wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
 
     generate_token(wordlist.user_id).then do |token|
@@ -37,6 +53,7 @@ class WordlistEntriesController < ApplicationController
       }
     end
   end
+  # rubocop:enable Metrics/AbcSize
 
   private
 
@@ -54,9 +71,9 @@ class WordlistEntriesController < ApplicationController
     word || Word.create(wordlist_entry_params[:word])
   end
 
-  def parse_wordlist_id_from_headers
-    request.headers['Authorization'].split(' ').last.then do |token|
-      decode_token(token)[0]['wordlist_id']
+  def parse_user_id_from_headers(headers)
+    headers['Authorization'].split(' ').last.then do |token|
+      decode_token(token)[0]['user_id']
     end
   end
 

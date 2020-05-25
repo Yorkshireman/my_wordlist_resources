@@ -5,7 +5,6 @@ require 'securerandom'
 require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe 'POST /wordlists response', type: :request do
-  include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
 
   describe 'when request is valid' do

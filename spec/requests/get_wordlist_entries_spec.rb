@@ -31,7 +31,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
       Word.destroy_all
       WordlistEntry.destroy_all
       create_wordlist
-      token = generate_token(@user_id, @wordlist_id)
+      token = generate_token(@user_id)
       headers = {
         'Authorization' => "Bearer #{token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
@@ -39,15 +39,15 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
       freeze_time do
         create_wordlist_entries
-        get '/wordlist_entries', headers: headers
+        get '/wordlist_entries', headers: headers, params: { wordlist_id: @wordlist_id, format: :json }
         @token = JWT.encode(
-          { user_id: @user_id, wordlist_id: @wordlist_id },
+          { user_id: @user_id },
           ENV['JWT_SECRET_KEY'],
           'HS256'
         )
-      end
 
-      @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
+        @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
+      end
     end
 
     it 'is 200 status' do
@@ -61,24 +61,26 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
           wordlist_entries: [
             {
               attributes: {
+                created_at: JSON.parse(@wordlist_entries_created_at[0].to_json),
+                description: 'the process of decaying',
                 word: {
                   id: @word2.id,
                   name: 'rot',
                   wordlist_ids: [@wordlist_id]
                 },
-                created_at: JSON.parse(@wordlist_entries_created_at.first.to_json),
-                description: 'the process of decaying'
+                wordlist_id: @wordlist_id
               }
             },
             {
               attributes: {
+                created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
+                description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing',
                 word: {
                   id: @word.id,
                   name: 'capable',
                   wordlist_ids: [@wordlist_id]
                 },
-                created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
-                description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
+                wordlist_id: @wordlist_id
               }
             }
           ]
