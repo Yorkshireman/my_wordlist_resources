@@ -274,6 +274,35 @@ RSpec.describe WordlistEntriesController do
     end
 
     context 'when request is invalid' do
+      context 'when Wordlist cannot be found by wordlist_id' do
+        before :each do
+          Wordlist.create(user_id: user_id_1)
+
+          token = generate_token(user_id_1)
+          request.headers['Authorization'] = "Bearer #{token}"
+          post :create, params: {
+            wordlist_entry: {
+              description: 'something to put things on',
+              word: {
+                name: 'table'
+              }
+            },
+            wordlist_id: '999',
+            format: :json
+          }
+        end
+
+        it 'responds with 404' do
+          expect(response).to have_http_status(404)
+        end
+
+        it 'error message is appropriate' do
+          expected_message = "Couldn't find Wordlist with 'id'=999"
+          actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+          expect(actual_message).to eq(expected_message)
+        end
+      end
+
       context 'when no Word attributes are provided in request' do
         before :each do
           request.headers['Authorization'] = "Bearer #{generate_token(user_id_1)}"

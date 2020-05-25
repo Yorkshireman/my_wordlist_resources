@@ -9,7 +9,7 @@ class ApplicationController < ActionController::API
     render_error_response(400, e)
   end
 
-  rescue_from 'ActionController::RecordNotFound' do |e|
+  rescue_from 'ActiveRecord::RecordNotFound' do |e|
     render_error_response(404, e)
   end
 

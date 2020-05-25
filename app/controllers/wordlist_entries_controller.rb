@@ -1,8 +1,8 @@
 require_relative '../helpers/token_helper'
 
+# rubocop:disable Metrics/ClassLength
 class WordlistEntriesController < ApplicationController
   include TokenHelper
-
   # rubocop:disable Metrics/AbcSize
   def create
     if request.headers['Authorization'].nil?
@@ -15,12 +15,13 @@ class WordlistEntriesController < ApplicationController
 
     user_id = parse_user_id_from_headers(request.headers)
     wordlist = Wordlist.find(params[:wordlist_id])
+
     if wordlist.user_id != user_id
       return render_error_response(400, 'wordlist does not belong to user')
     end
 
     word = find_or_create_word
-    wordlist_entry = create_wordlist_entry(params[:wordlist_id], word)
+    wordlist_entry = WordlistEntry.create(wordlist_entry_params(word.id))
 
     render json: {
       data: {
@@ -60,10 +61,6 @@ class WordlistEntriesController < ApplicationController
 
   private
 
-  def create_wordlist_entry(wordlist_id, word)
-    WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: wordlist_entry_params[:description])
-  end
-
   def find_or_create_word
     word_id = params[:wordlist_entry][:word][:id]
     word_name = params[:wordlist_entry][:word][:name]
@@ -73,7 +70,7 @@ class WordlistEntriesController < ApplicationController
              Word.find_by(name: word_name)
            end
 
-    word || Word.create(word_params[:word])
+    word || Word.create(word_params)
   end
 
   def parse_user_id_from_headers(headers)
@@ -114,14 +111,21 @@ class WordlistEntriesController < ApplicationController
   end
 
   def word_params
-    params.require(:wordlist_entry).permit(word: [:name])
+    params.require(:wordlist_entry).permit(word: :name)[:word]
   end
 
   def wordlist_params
     params.permit(:wordlist_id)
   end
 
-  def wordlist_entry_params
-    params.require(:wordlist_entry).permit(:description, word: :id)
+  def wordlist_entry_params(word_id)
+    params.require(:wordlist_entry).permit(:description, word: :id).tap do |sanitised_params|
+      return {
+        description: sanitised_params[:description],
+        word_id: word_id,
+        wordlist_id: wordlist_params[:wordlist_id]
+      }
+    end
   end
 end
+# rubocop:enable Metrics/ClassLength
