@@ -5,32 +5,30 @@ class WordlistEntriesController < ApplicationController
 
   def create
     word = find_or_create_word(wordlist_entry_params)
+    @wordlist_id = wordlist_params[:wordlist_id]
+    wordlist_entry = create_wordlist_entry(@wordlist_id, word)
+    token = Wordlist.find(@wordlist_id).then { |wl| generate_token(wl.user_id) }
 
-    parse_wordlist_id_from_headers.then do |wordlist_id|
-      wordlist_entry = create_wordlist_entry(wordlist_id, word)
-      token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
-
-      render json: {
-        data: {
-          token: token,
-          type: 'wordlist-entry',
-          id: wordlist_entry.id,
-          attributes: parse_wordlist_entry(wordlist_entry, word)
-        }
-      }, status: :created
-    end
+    render json: {
+      data: {
+        token: token,
+        type: 'wordlist-entry',
+        id: wordlist_entry.id,
+        attributes: parse_wordlist_entry(wordlist_entry, word)
+      }
+    }, status: :created
   end
 
   def index
-    wordlist_id = parse_wordlist_id_from_headers
-    unless wordlist_id
+    @wordlist_id = wordlist_params[:wordlist_id]
+    unless @wordlist_id
       return render_error_response(400, 'Invalid token - missing wordlist id')
     end
 
-    wordlist = Wordlist.find(wordlist_id)
+    wordlist = Wordlist.find(@wordlist_id)
     wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
 
-    generate_token(wordlist.user_id, wordlist.id).then do |token|
+    generate_token(wordlist.user_id).then do |token|
       render json: {
         data: {
           token: token,
@@ -79,7 +77,8 @@ class WordlistEntriesController < ApplicationController
         wordlist_ids: wordlist_entry_word.wordlist_ids
       },
       created_at: wordlist_entry.created_at,
-      description: wordlist_entry.description
+      description: wordlist_entry.description,
+      wordlist_id: @wordlist_id
     }
   end
 
@@ -90,6 +89,10 @@ class WordlistEntriesController < ApplicationController
         { title: message }
       ]
     }
+  end
+
+  def wordlist_params
+    params.permit(:wordlist_id)
   end
 
   def wordlist_entry_params

@@ -15,19 +15,22 @@ RSpec.describe WordlistEntriesController do
 
   describe '#index' do
     before :each do
-      Wordlist.create(user_id: user_id_1).tap do |wordlist|
+      Wordlist.create(user_id: user_id_1).then do |wordlist|
+        @wordlist = wordlist
         %w[foo fizz buzz].each do |word_name|
           Word.create(name: word_name).tap do |word|
             WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
           end
         end
 
-        token = generate_token(user_id_1, wordlist.id)
+        token = generate_token(user_id_1)
         request.headers['Authorization'] = "Bearer #{token}"
         request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
       end
 
-      get :index, format: :json
+      get :index, params: {
+        wordlist_id: @wordlist.id, format: :json
+      }
     end
 
     it 'orders WordlistEntries by created_at attribute by newest first' do
@@ -38,17 +41,22 @@ RSpec.describe WordlistEntriesController do
       expect(words_from_response.first[:name]).to eq('buzz')
       expect(words_from_response.last[:name]).to eq('foo')
     end
+
+    it 'includes wordlist_id' do
+      actual_wordlist_id = JSON.parse(response.body)
+                               .deep_symbolize_keys[:data][:wordlist_entries][0][:attributes][:wordlist_id]
+      expected_wordlist_id = @wordlist.id
+      expect(actual_wordlist_id).to eq(expected_wordlist_id)
+    end
   end
 
   describe '#create' do
     context 'when request is valid' do
       context 'when Word does not already exist' do
         before :each do
-          @wordlist = Wordlist.create(user_id: user_id_1).tap do |x|
-            token = generate_token(user_id_1, x.id)
-            request.headers['Authorization'] = "Bearer #{token}"
-            request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
-          end
+          @wordlist = Wordlist.create(user_id: user_id_1)
+          request.headers['Authorization'] = "Bearer #{generate_token(user_id_1)}"
+          request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
 
           post :create, params: {
             wordlist_entry: {
@@ -57,12 +65,12 @@ RSpec.describe WordlistEntriesController do
                 name: 'table'
               }
             },
+            wordlist_id: @wordlist.id,
             format: :json
           }
 
-          wordlist_id = Wordlist.first.id
           @token = JWT.encode(
-            { user_id: user_id_1, wordlist_id: wordlist_id },
+            { user_id: user_id_1 },
             ENV['JWT_SECRET_KEY'],
             'HS256'
           )
@@ -95,7 +103,8 @@ RSpec.describe WordlistEntriesController do
                   id: Word.first.id,
                   name: 'table',
                   wordlist_ids: [@wordlist.id]
-                }
+                },
+                wordlist_id: @wordlist.id
               }
             }
           }
@@ -107,10 +116,8 @@ RSpec.describe WordlistEntriesController do
 
       context 'when Word already exists' do
         before :each do
-          @wordlist1 = Wordlist.create(user_id: user_id_1).tap do |x|
-            generate_token(user_id_1, x.id).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
-          end
-
+          @wordlist1 = Wordlist.create(user_id: user_id_1)
+          generate_token(user_id_1).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
           @wordlist2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
             @word = Word.create(name: 'table')
             WordlistEntry.create(
@@ -129,11 +136,12 @@ RSpec.describe WordlistEntriesController do
                 name: 'table'
               }
             },
+            wordlist_id: @wordlist1.id,
             format: :json
           }
 
           @token = JWT.encode(
-            { user_id: user_id_1, wordlist_id: @wordlist1.id },
+            { user_id: user_id_1 },
             ENV['JWT_SECRET_KEY'],
             'HS256'
           )
@@ -175,7 +183,8 @@ RSpec.describe WordlistEntriesController do
                   id: @word.id,
                   name: 'table',
                   wordlist_ids: [@wordlist2.id, @wordlist1.id]
-                }
+                },
+                wordlist_id: @wordlist1.id
               }
             }
           }
@@ -198,6 +207,7 @@ RSpec.describe WordlistEntriesController do
                   id: @word.id
                 }
               },
+              wordlist_id: @wordlist1.id,
               format: :json
             }
           end
@@ -223,6 +233,7 @@ RSpec.describe WordlistEntriesController do
                   id: @word.id
                 }
               },
+              wordlist_id: @wordlist1.id,
               format: :json
             }
           end
@@ -249,6 +260,7 @@ RSpec.describe WordlistEntriesController do
             wordlist_entry: {
               word: {}
             },
+            wordlist_id: 'wordlist_id_uuid',
             format: :json
           }
         end
