@@ -9,15 +9,18 @@ class WordlistEntriesController < ApplicationController
       return render_error_response(401, 'missing Authorization header')
     end
 
-    user_id = parse_user_id_from_headers(request.headers)
-    @wordlist_id = wordlist_params[:wordlist_id]
-    wordlist = Wordlist.find(@wordlist_id)
-    if wordlist.user_id != user_id
-      return render_error_response(400, 'wordlist_id does not belong to user_id')
+    if params[:wordlist_entry].nil?
+      return render_error_response(400, 'nil wordlist_entry params')
     end
 
-    word = find_or_create_word(wordlist_entry_params)
-    wordlist_entry = create_wordlist_entry(@wordlist_id, word)
+    user_id = parse_user_id_from_headers(request.headers)
+    wordlist = Wordlist.find(params[:wordlist_id])
+    if wordlist.user_id != user_id
+      return render_error_response(400, 'wordlist does not belong to user')
+    end
+
+    word = find_or_create_word
+    wordlist_entry = create_wordlist_entry(params[:wordlist_id], word)
 
     render json: {
       data: {
@@ -39,7 +42,7 @@ class WordlistEntriesController < ApplicationController
     user_id = parse_user_id_from_headers(request.headers)
 
     if wordlist.user_id != user_id
-      return render_error_response(400, 'wordlist_id does not belong to user_id')
+      return render_error_response(400, 'wordlist does not belong to user')
     end
 
     wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
@@ -61,14 +64,16 @@ class WordlistEntriesController < ApplicationController
     WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: wordlist_entry_params[:description])
   end
 
-  def find_or_create_word(wordlist_entry_params)
-    word = if wordlist_entry_params[:word][:id]
-             Word.find(wordlist_entry_params[:word][:id])
+  def find_or_create_word
+    word_id = params[:wordlist_entry][:word][:id]
+    word_name = params[:wordlist_entry][:word][:name]
+    word = if word_id
+             Word.find(word_id)
            else
-             Word.find_by(wordlist_entry_params[:word])
+             Word.find_by(name: word_name)
            end
 
-    word || Word.create(wordlist_entry_params[:word])
+    word || Word.create(word_params[:word])
   end
 
   def parse_user_id_from_headers(headers)
@@ -95,7 +100,7 @@ class WordlistEntriesController < ApplicationController
       },
       created_at: wordlist_entry.created_at,
       description: wordlist_entry.description,
-      wordlist_id: @wordlist_id
+      wordlist_id: params[:wordlist_id]
     }
   end
 
@@ -108,11 +113,15 @@ class WordlistEntriesController < ApplicationController
     }
   end
 
+  def word_params
+    params.require(:wordlist_entry).permit(word: [:name])
+  end
+
   def wordlist_params
     params.permit(:wordlist_id)
   end
 
   def wordlist_entry_params
-    params.require(:wordlist_entry).permit(:description, word: [:id, :name])
+    params.require(:wordlist_entry).permit(:description, word: :id)
   end
 end

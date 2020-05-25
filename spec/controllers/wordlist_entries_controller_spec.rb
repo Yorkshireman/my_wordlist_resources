@@ -61,6 +61,12 @@ RSpec.describe WordlistEntriesController do
       it 'responds with 400 http status' do
         expect(response).to have_http_status(400)
       end
+
+      it 'error message is appropriate' do
+        expected_message = 'wordlist does not belong to user'
+        actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+        expect(actual_message).to eq(expected_message)
+      end
     end
   end
 
@@ -285,6 +291,12 @@ RSpec.describe WordlistEntriesController do
           expect(response).to have_http_status(400)
         end
 
+        it 'error message is appropriate' do
+          expected_message = 'nil wordlist_entry params'
+          actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+          expect(actual_message).to eq(expected_message)
+        end
+
         it 'does not create a Word' do
           expect(Word.count).to eq(0)
         end
@@ -315,6 +327,12 @@ RSpec.describe WordlistEntriesController do
 
         it 'responds with 400 http status' do
           expect(response).to have_http_status(400)
+        end
+
+        it 'error message is appropriate' do
+          expected_message = 'wordlist does not belong to user'
+          actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+          expect(actual_message).to eq(expected_message)
         end
       end
     end
