@@ -140,6 +140,11 @@ RSpec.describe WordlistEntriesController do
           generate_token(user_id_1).then { |t| request.headers['Authorization'] = "Bearer #{t}" }
           @wordlist2 = Wordlist.create(user_id: user_id_2).tap do |wordlist|
             @word = Word.create(name: 'table')
+
+            # possibly cures a flakey test related to order of Wordlist ids in db, due to
+            # created_at times being so close together to be identical
+            sleep(0.01)
+
             WordlistEntry.create(
               wordlist_id: wordlist.id,
               word_id: @word.id,

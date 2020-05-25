@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+  before_action :check_authorisation_header
   before_action :set_headers
 
   def set_headers
@@ -18,6 +19,10 @@ class ApplicationController < ActionController::API
   end
 
   private
+
+  def check_authorisation_header
+    render_error_response(401, 'missing Authorization header') unless request.headers['Authorization']
+  end
 
   def render_error_response(status, message)
     response.status = status

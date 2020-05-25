@@ -25,7 +25,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
   include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
 
-  describe 'when request is valid' do
+  context 'when request is valid' do
     before :each do
       Wordlist.destroy_all
       Word.destroy_all
@@ -89,6 +89,24 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
       actual_body = JSON.parse(response.body).deep_symbolize_keys
       expect(actual_body).to eq(expected_body)
+    end
+  end
+
+  context 'when request is not valid' do
+    context 'when Authorization header is missing' do
+      before :each do
+        get '/wordlist_entries'
+      end
+
+      it 'returns 401' do
+        expect(response).to have_http_status(401)
+      end
+
+      it 'error message is appropriate' do
+        expected_message = 'missing Authorization header'
+        actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+        expect(actual_message).to eq(expected_message)
+      end
     end
   end
 end

@@ -5,10 +5,6 @@ class WordlistEntriesController < ApplicationController
   include TokenHelper
   # rubocop:disable Metrics/AbcSize
   def create
-    if request.headers['Authorization'].nil?
-      return render_error_response(401, 'missing Authorization header')
-    end
-
     if params[:wordlist_entry].nil?
       return render_error_response(400, 'nil wordlist_entry params')
     end
