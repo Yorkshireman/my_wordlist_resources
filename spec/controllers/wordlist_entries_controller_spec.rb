@@ -246,6 +246,18 @@ RSpec.describe WordlistEntriesController do
           end
         end
       end
+
+      context 'when id is provided and is valid' do
+        xit 'creates WordlistEntry with provided id'
+      end
+
+      context 'when id is provided and matches an existing id' do
+        xit 'throws'
+      end
+
+      context 'when id is provided and is not a uuid' do
+        xit 'throws'
+      end
     end
 
     context 'when request is invalid' do
