@@ -22,7 +22,6 @@ def create_wordlist_entries
 end
 
 RSpec.describe 'GET /wordlist_entries response', type: :request do
-  include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
 
   describe 'when request is valid' do
@@ -37,17 +36,15 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      freeze_time do
-        create_wordlist_entries
-        get '/wordlist_entries', headers: headers
-        @token = JWT.encode(
-          { user_id: @user_id, wordlist_id: @wordlist_id },
-          ENV['JWT_SECRET_KEY'],
-          'HS256'
-        )
-      end
+      create_wordlist_entries
+      get '/wordlist_entries', headers: headers
+      @token = JWT.encode(
+        { user_id: @user_id, wordlist_id: @wordlist_id },
+        ENV['JWT_SECRET_KEY'],
+        'HS256'
+      )
 
-      @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
+      @wordlist_entries = Wordlist.find(@wordlist_id).wordlist_entries
     end
 
     it 'is 200 status' do
@@ -66,9 +63,10 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
                   name: 'rot',
                   wordlist_ids: [@wordlist_id]
                 },
-                created_at: JSON.parse(@wordlist_entries_created_at.first.to_json),
+                created_at: JSON.parse(@wordlist_entries[1].created_at.to_json),
                 description: 'the process of decaying'
-              }
+              },
+              id: @wordlist_entries[1].id
             },
             {
               attributes: {
@@ -77,9 +75,10 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
                   name: 'capable',
                   wordlist_ids: [@wordlist_id]
                 },
-                created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
+                created_at: JSON.parse(@wordlist_entries[0].created_at.to_json),
                 description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
-              }
+              },
+              id: @wordlist_entries[0].id
             }
           ]
         }
