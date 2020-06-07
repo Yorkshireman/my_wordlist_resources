@@ -65,7 +65,8 @@ class WordlistEntriesController < ApplicationController
   def parse_wordlist_entries(wordlist_entries)
     wordlist_entries.map do |wordlist_entry|
       {
-        attributes: parse_wordlist_entry(wordlist_entry)
+        attributes: parse_wordlist_entry(wordlist_entry),
+        id: wordlist_entry.id
       }
     end
   end

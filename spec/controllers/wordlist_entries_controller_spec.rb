@@ -38,6 +38,12 @@ RSpec.describe WordlistEntriesController do
       expect(words_from_response.first[:name]).to eq('buzz')
       expect(words_from_response.last[:name]).to eq('foo')
     end
+
+    it 'includes wordlist entry id' do
+      JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].each do |wordlist_entry|
+        expect(wordlist_entry[:id]).to be_a(String)
+      end
+    end
   end
 
   describe '#create' do
