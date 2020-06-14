@@ -1,5 +1,5 @@
 require_relative '../helpers/token_helper'
-# rubocop:disable Metrics/ClassLength
+
 class WordlistEntriesController < ApplicationController
   include TokenHelper
   # rubocop:disable Metrics/AbcSize
@@ -10,6 +10,7 @@ class WordlistEntriesController < ApplicationController
 
     user_id = parse_user_id_from_headers(request.headers)
     wordlist = Wordlist.find(params[:wordlist_id])
+    @wordlist_id = wordlist.id
 
     if wordlist.user_id != user_id
       return render_error_response(400, 'wordlist does not belong to user')
@@ -29,19 +30,10 @@ class WordlistEntriesController < ApplicationController
   end
 
   def index
-    @wordlist_id = wordlist_params[:wordlist_id]
-    unless @wordlist_id
-      return render_error_response(400, 'missing wordlist id')
-    end
-
-    wordlist = Wordlist.find(@wordlist_id)
     user_id = parse_user_id_from_headers(request.headers)
-
-    if wordlist.user_id != user_id
-      return render_error_response(400, 'wordlist does not belong to user')
-    end
-
+    wordlist = Wordlist.find_by!(user_id: user_id)
     wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
+    @wordlist_id = wordlist.id
 
     generate_token(wordlist.user_id).then do |token|
       render json: {
@@ -93,7 +85,7 @@ class WordlistEntriesController < ApplicationController
       },
       created_at: wordlist_entry.created_at,
       description: wordlist_entry.description,
-      wordlist_id: params[:wordlist_id]
+      wordlist_id: @wordlist_id
     }
   end
 
@@ -124,4 +116,3 @@ class WordlistEntriesController < ApplicationController
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

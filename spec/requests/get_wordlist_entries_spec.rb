@@ -37,7 +37,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
       }
 
       create_wordlist_entries
-      get '/wordlist_entries', headers: headers, params: { wordlist_id: @wordlist_id, format: :json }
+      get '/wordlist_entries', headers: headers
       @token = JWT.encode(
         { user_id: @user_id },
         ENV['JWT_SECRET_KEY'],

@@ -27,9 +27,7 @@ RSpec.describe WordlistEntriesController do
         request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
       end
 
-      get :index, params: {
-        wordlist_id: @wordlist.id, format: :json
-      }
+      get :index
     end
 
     it 'orders WordlistEntries by created_at attribute by newest first' do
@@ -48,22 +46,19 @@ RSpec.describe WordlistEntriesController do
       expect(actual_wordlist_id).to eq(expected_wordlist_id)
     end
 
-    context 'when wordlist_id does not belong to user_id in token' do
+    context 'when the supplied user_id is not associated with any Wordlist' do
       before :each do
-        Wordlist.create(user_id: user_id_2)
-        token = generate_token(user_id_2)
+        token = generate_token(SecureRandom.uuid)
         request.headers['Authorization'] = "Bearer #{token}"
-        get :index, params: {
-          wordlist_id: @wordlist.id, format: :json
-        }
+        get :index
       end
 
-      it 'responds with 400 http status' do
-        expect(response).to have_http_status(400)
+      it 'responds with 404' do
+        expect(response).to have_http_status(404)
       end
 
       it 'error message is appropriate' do
-        expected_message = 'wordlist does not belong to user'
+        expected_message = "Couldn't find Wordlist"
         actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
         expect(actual_message).to eq(expected_message)
       end
