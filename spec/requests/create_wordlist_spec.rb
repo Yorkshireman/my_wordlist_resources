@@ -5,23 +5,21 @@ require 'securerandom'
 require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe 'POST /wordlists response', type: :request do
-  include ActiveSupport::Testing::TimeHelpers
   include TokenHelper
 
   describe 'when request is valid' do
     before :each do
       Wordlist.destroy_all
-      @user_id = SecureRandom.uuid
-      token = generate_token(@user_id)
+      user_id = SecureRandom.uuid
+      token = generate_token(user_id)
       headers = {
         'Authorization' => "Bearer #{token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
       post '/wordlists', headers: headers
-      wordlist_id = Wordlist.first.id
       @token = JWT.encode(
-        { user_id: @user_id, wordlist_id: wordlist_id },
+        { user_id: user_id },
         ENV['JWT_SECRET_KEY'],
         'HS256'
       )
@@ -32,11 +30,15 @@ RSpec.describe 'POST /wordlists response', type: :request do
     end
 
     it 'has correct body' do
+      expected_created_at = JSON.parse(Wordlist.first.created_at.to_json)
       expected_body = {
         data: {
+          attributes: {
+            created_at: expected_created_at
+          },
+          id: Wordlist.first.id,
           token: @token,
-          type: 'wordlist',
-          attributes: {}
+          type: 'wordlist'
         }
       }
 
