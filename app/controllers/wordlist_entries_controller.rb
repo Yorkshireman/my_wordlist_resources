@@ -9,19 +9,15 @@ class WordlistEntriesController < ApplicationController
     end
 
     user_id = parse_user_id_from_headers(request.headers)
-    wordlist = Wordlist.find(params[:wordlist_id])
+    wordlist = Wordlist.find_by!(user_id: user_id)
     @wordlist_id = wordlist.id
 
-    if wordlist.user_id != user_id
-      return render_error_response(400, 'wordlist does not belong to user')
-    end
-
     word = find_or_create_word
-    wordlist_entry = WordlistEntry.create(wordlist_entry_params(word.id))
+    wordlist_entry = WordlistEntry.create(wordlist_entry_params(word.id, @wordlist_id))
 
     render json: {
       data: {
-        token: generate_token(wordlist.user_id),
+        token: generate_token(user_id),
         type: 'wordlist-entry',
         id: wordlist_entry.id,
         attributes: parse_wordlist_entry(wordlist_entry, word)
@@ -102,16 +98,12 @@ class WordlistEntriesController < ApplicationController
     params.require(:wordlist_entry).permit(word: :name)[:word]
   end
 
-  def wordlist_params
-    params.permit(:wordlist_id)
-  end
-
-  def wordlist_entry_params(word_id)
+  def wordlist_entry_params(word_id, wordlist_id)
     params.require(:wordlist_entry).permit(:description, word: :id).tap do |sanitised_params|
       return {
         description: sanitised_params[:description],
         word_id: word_id,
-        wordlist_id: wordlist_params[:wordlist_id]
+        wordlist_id: wordlist_id
       }
     end
   end

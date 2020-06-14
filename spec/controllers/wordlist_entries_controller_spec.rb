@@ -80,7 +80,6 @@ RSpec.describe WordlistEntriesController do
                 name: 'table'
               }
             },
-            wordlist_id: @wordlist.id,
             format: :json
           }
 
@@ -278,7 +277,7 @@ RSpec.describe WordlistEntriesController do
         before :each do
           Wordlist.create(user_id: user_id_1)
 
-          token = generate_token(user_id_1)
+          token = generate_token(SecureRandom.uuid)
           request.headers['Authorization'] = "Bearer #{token}"
           post :create, params: {
             wordlist_entry: {
@@ -287,7 +286,6 @@ RSpec.describe WordlistEntriesController do
                 name: 'table'
               }
             },
-            wordlist_id: '999',
             format: :json
           }
         end
@@ -297,7 +295,7 @@ RSpec.describe WordlistEntriesController do
         end
 
         it 'error message is appropriate' do
-          expected_message = "Couldn't find Wordlist with 'id'=999"
+          expected_message = "Couldn't find Wordlist"
           actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
           expect(actual_message).to eq(expected_message)
         end
@@ -332,36 +330,6 @@ RSpec.describe WordlistEntriesController do
 
         it 'does not create a WordlistEntry' do
           expect(WordlistEntry.count).to eq(0)
-        end
-      end
-
-      context 'when wordlist_id does not belong to user_id in token' do
-        before :each do
-          wordlist1 = Wordlist.create(user_id: user_id_1)
-          Wordlist.create(user_id: user_id_2)
-
-          token = generate_token(user_id_2)
-          request.headers['Authorization'] = "Bearer #{token}"
-          post :create, params: {
-            wordlist_entry: {
-              description: 'something to put things on',
-              word: {
-                name: 'table'
-              }
-            },
-            wordlist_id: wordlist1.id,
-            format: :json
-          }
-        end
-
-        it 'responds with 400 http status' do
-          expect(response).to have_http_status(400)
-        end
-
-        it 'error message is appropriate' do
-          expected_message = 'wordlist does not belong to user'
-          actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
-          expect(actual_message).to eq(expected_message)
         end
       end
     end
