@@ -1,5 +1,5 @@
 require_relative '../helpers/token_helper'
-
+# rubocop:disable Metrics/ClassLength
 class WordlistEntriesController < ApplicationController
   include TokenHelper
   # rubocop:disable Metrics/AbcSize
@@ -77,7 +77,8 @@ class WordlistEntriesController < ApplicationController
   def parse_wordlist_entries(wordlist_entries)
     wordlist_entries.map do |wordlist_entry|
       {
-        attributes: parse_wordlist_entry(wordlist_entry)
+        attributes: parse_wordlist_entry(wordlist_entry),
+        id: wordlist_entry.id
       }
     end
   end
@@ -123,3 +124,4 @@ class WordlistEntriesController < ApplicationController
     end
   end
 end
+# rubocop:enable Metrics/ClassLength
