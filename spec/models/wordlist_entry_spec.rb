@@ -23,7 +23,7 @@ RSpec.describe WordlistEntry, type: :model do
   end
 
   context 'when an id is provided during creation' do
-    let(:my_uuid) { SecureRandom.uuid }
+    let(:my_uuid) { '79c9bc0f-8ecf-4cf7-a05e-7c485d02078d' }
     let(:wordlist_entry2) do
       described_class.create!(
         id: my_uuid,
@@ -33,11 +33,9 @@ RSpec.describe WordlistEntry, type: :model do
     end
 
     it 'an id is not generated on creation' do
-      expect(my_uuid).to eq wordlist_entry2.id
+      expect(wordlist_entry2.id).to eq '79c9bc0f-8ecf-4cf7-a05e-7c485d02078d'
     end
 
-    # how to make this throw instead? All seems to happen at the database level (which doesn't throw when the id isn't
-    # a valid uuid)
     it "if id isn't a valid UUID, one is created" do
       wordlist_entry = described_class.create(
         id: 'bogus-id',

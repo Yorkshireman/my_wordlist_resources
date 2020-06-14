@@ -248,7 +248,39 @@ RSpec.describe WordlistEntriesController do
       end
 
       context 'when id is provided and is valid' do
-        xit 'creates WordlistEntry with provided id'
+        let (:uuid) { SecureRandom.uuid }
+        before :each do
+          @wordlist = Wordlist.create(user_id: user_id_1).tap do |x|
+            token = generate_token(user_id_1, x.id)
+            request.headers['Authorization'] = "Bearer #{token}"
+            request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
+          end
+
+          post :create, params: {
+            wordlist_entry: {
+              description: 'something to put things on',
+              id: uuid,
+              word: {
+                name: 'table'
+              }
+            },
+            format: :json
+          }
+
+          wordlist_id = Wordlist.first.id
+          @token = JWT.encode(
+            { user_id: user_id_1, wordlist_id: wordlist_id },
+            ENV['JWT_SECRET_KEY'],
+            'HS256'
+          )
+
+          @wordlist_entry_created_at = @wordlist.wordlist_entries.last.created_at
+        end
+
+        it 'creates WordlistEntry with provided id' do
+          body = JSON.parse(response.body).deep_symbolize_keys
+          expect(body[:data][:id]).to eq(uuid)
+        end
       end
 
       context 'when id is provided and matches an existing id' do
