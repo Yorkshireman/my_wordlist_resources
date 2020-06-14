@@ -2,35 +2,36 @@ require_relative '../helpers/token_helper'
 
 class WordlistEntriesController < ApplicationController
   include TokenHelper
-
+  # rubocop:disable Metrics/AbcSize
   def create
-    word = find_or_create_word(wordlist_entry_params)
-
-    parse_wordlist_id_from_headers.then do |wordlist_id|
-      wordlist_entry = create_wordlist_entry(wordlist_id, word)
-      token = Wordlist.find(wordlist_id).then { |wl| generate_token(wl.user_id, wl.id) }
-
-      render json: {
-        data: {
-          token: token,
-          type: 'wordlist-entry',
-          id: wordlist_entry.id,
-          attributes: parse_wordlist_entry(wordlist_entry, word)
-        }
-      }, status: :created
+    if params[:wordlist_entry].nil?
+      return render_error_response(400, 'nil wordlist_entry params')
     end
+
+    user_id = parse_user_id_from_headers(request.headers)
+    wordlist = Wordlist.find_by!(user_id: user_id)
+    @wordlist_id = wordlist.id
+
+    word = find_or_create_word
+    wordlist_entry = WordlistEntry.create(wordlist_entry_params(word.id, @wordlist_id))
+
+    render json: {
+      data: {
+        token: generate_token(user_id),
+        type: 'wordlist-entry',
+        id: wordlist_entry.id,
+        attributes: parse_wordlist_entry(wordlist_entry, word)
+      }
+    }, status: :created
   end
 
   def index
-    wordlist_id = parse_wordlist_id_from_headers
-    unless wordlist_id
-      return render_error_response(400, 'Invalid token - missing wordlist id')
-    end
-
-    wordlist = Wordlist.find(wordlist_id)
+    user_id = parse_user_id_from_headers(request.headers)
+    wordlist = Wordlist.find_by!(user_id: user_id)
     wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
+    @wordlist_id = wordlist.id
 
-    generate_token(wordlist.user_id, wordlist.id).then do |token|
+    generate_token(wordlist.user_id).then do |token|
       render json: {
         data: {
           token: token,
@@ -39,26 +40,25 @@ class WordlistEntriesController < ApplicationController
       }
     end
   end
+  # rubocop:enable Metrics/AbcSize
 
   private
 
-  def create_wordlist_entry(wordlist_id, word)
-    WordlistEntry.create(wordlist_id: wordlist_id, word_id: word.id, description: wordlist_entry_params[:description])
-  end
-
-  def find_or_create_word(wordlist_entry_params)
-    word = if wordlist_entry_params[:word][:id]
-             Word.find(wordlist_entry_params[:word][:id])
+  def find_or_create_word
+    word_id = params[:wordlist_entry][:word][:id]
+    word_name = params[:wordlist_entry][:word][:name]
+    word = if word_id
+             Word.find(word_id)
            else
-             Word.find_by(wordlist_entry_params[:word])
+             Word.find_by(name: word_name)
            end
 
-    word || Word.create(wordlist_entry_params[:word])
+    word || Word.create(word_params)
   end
 
-  def parse_wordlist_id_from_headers
-    request.headers['Authorization'].split(' ').last.then do |token|
-      decode_token(token)[0]['wordlist_id']
+  def parse_user_id_from_headers(headers)
+    headers['Authorization'].split(' ').last.then do |token|
+      decode_token(token)[0]['user_id']
     end
   end
 
@@ -80,7 +80,8 @@ class WordlistEntriesController < ApplicationController
         wordlist_ids: wordlist_entry_word.wordlist_ids
       },
       created_at: wordlist_entry.created_at,
-      description: wordlist_entry.description
+      description: wordlist_entry.description,
+      wordlist_id: @wordlist_id
     }
   end
 
@@ -93,7 +94,17 @@ class WordlistEntriesController < ApplicationController
     }
   end
 
-  def wordlist_entry_params
-    params.require(:wordlist_entry).permit(:description, word: [:id, :name])
+  def word_params
+    params.require(:wordlist_entry).permit(word: :name)[:word]
+  end
+
+  def wordlist_entry_params(word_id, wordlist_id)
+    params.require(:wordlist_entry).permit(:description, word: :id).tap do |sanitised_params|
+      return {
+        description: sanitised_params[:description],
+        word_id: word_id,
+        wordlist_id: wordlist_id
+      }
+    end
   end
 end

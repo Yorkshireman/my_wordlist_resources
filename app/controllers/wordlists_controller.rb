@@ -3,54 +3,54 @@ require_relative '../helpers/token_helper'
 class WordlistsController < ApplicationController
   include TokenHelper
   def create
-    token = request.headers['Authorization'].split(' ').last
-    user_id = decode_token(token)[0]['user_id']
+    user_id = parse_token_from_headers(request.headers).then do |token|
+      parse_user_id_from_token(token) || render_error_response(400, 'Invalid token')
+    end
+
     wordlist = Wordlist.new(user_id: user_id)
     return unless wordlist.save
 
     response.status = 201
     render json: {
       data: {
-        token: generate_token(user_id, wordlist.id),
-        type: 'wordlist',
-        attributes: {}
+        attributes: {
+          created_at: wordlist.created_at
+        },
+        id: wordlist.id,
+        token: generate_token(user_id),
+        type: 'wordlist'
       }
     }
   end
 
   def show
-    ids = request.headers['Authorization'].split(' ').last.then do |token|
-      parse_ids_from_token(token)
+    user_id = parse_token_from_headers(request.headers).then do |token|
+      parse_user_id_from_token(token) || render_error_response(400, 'Invalid token')
     end
 
-    wordlist_id = find_wordlist_id(ids)
+    wordlist = Wordlist.find_by!(user_id: user_id)
 
-    generate_token(ids[:user_id], wordlist_id).then do |token|
-      render json: {
-        data: {
-          token: token,
-          type: 'wordlist',
-          attributes: {}
-        }
+    render json: {
+      data: {
+        attributes: {
+          created_at: wordlist.created_at
+        },
+        id: wordlist.id,
+        token: generate_token(user_id),
+        type: 'wordlist'
       }
-    end
+    }
   end
 
   private
 
-  def find_wordlist_id(ids)
-    ids[:wordlist_id] ? Wordlist.find(ids[:wordlist_id]).id : Wordlist.find_by!(user_id: ids[:user_id]).id
+  def parse_token_from_headers(headers)
+    headers['Authorization'].split(' ').last
   end
 
-  def parse_ids_from_token(token)
+  def parse_user_id_from_token(token)
     decoded_token = decode_token(token)[0]
-    user_id = decoded_token['user_id']
-    wordlist_id = decoded_token['wordlist_id']
-    unless user_id || wordlist_id
-      return render_error_response(400, 'Invalid token')
-    end
-
-    { user_id: user_id, wordlist_id: wordlist_id }
+    decoded_token['user_id']
   end
 
   def render_error_response(status, message)
