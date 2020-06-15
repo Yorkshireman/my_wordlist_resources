@@ -300,7 +300,6 @@ RSpec.describe WordlistEntriesController do
 
           it 'creates WordlistEntry with provided id' do
             body = JSON.parse(response.body).deep_symbolize_keys
-            # require 'byebug'; byebug
             expect(body[:data][:id]).to eq(uuid)
           end
         end
@@ -309,7 +308,7 @@ RSpec.describe WordlistEntriesController do
           before :each do
             post :create, params: {
               wordlist_entry: {
-                id: 'not-a-uuid',
+                id: '2d99808da66c9a4ac8a98f9a3a0b8295568f',
                 word: {
                   name: 'wordname'
                 }
