@@ -271,38 +271,71 @@ RSpec.describe WordlistEntriesController do
         end
       end
 
-      context 'when id is provided and is valid' do
+      context 'when id is provided' do
         let(:uuid) { SecureRandom.uuid }
         before :each do
-          @wordlist = Wordlist.create(user_id: user_id_1)
-          token = generate_token(user_id_1)
-          request.headers['Authorization'] = "Bearer #{token}"
+          user_id = SecureRandom.uuid
+          Wordlist.create(user_id: user_id)
+          @token = generate_token(user_id)
+          request.headers['Authorization'] = "Bearer #{@token}"
           request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
-
-          post :create, params: {
-            wordlist_entry: {
-              description: 'something to put things on',
-              id: uuid,
-              word: {
-                name: 'table'
-              }
-            },
-            format: :json
-          }
         end
 
-        it 'creates WordlistEntry with provided id' do
-          body = JSON.parse(response.body).deep_symbolize_keys
-          expect(body[:data][:id]).to eq(uuid)
+        after :each do
+          Wordlist.destroy_all
         end
-      end
 
-      context 'when id is provided and matches an existing id' do
-        xit 'throws'
-      end
+        context 'and is a valid uuid' do
+          before :each do
+            post :create, params: {
+              wordlist_entry: {
+                id: uuid,
+                word: {
+                  name: 'wordname'
+                }
+              },
+              format: :json
+            }
+          end
 
-      context 'when id is provided and is not a uuid' do
-        xit 'throws'
+          it 'creates WordlistEntry with provided id' do
+            body = JSON.parse(response.body).deep_symbolize_keys
+            # require 'byebug'; byebug
+            expect(body[:data][:id]).to eq(uuid)
+          end
+        end
+
+        context 'and is not a uuid' do
+          before :each do
+            post :create, params: {
+              wordlist_entry: {
+                id: 'not-a-uuid',
+                word: {
+                  name: 'wordname'
+                }
+              },
+              format: :json
+            }
+          end
+
+          it 'responds with 400 status code' do
+            expect(response).to have_http_status(400)
+          end
+
+          it 'error message is appropriate' do
+            expected_message = 'Invalid WordlistEntry id'
+            actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+            expect(actual_message).to eq(expected_message)
+          end
+
+          it 'does not create a WordlistEntry' do
+            expect(WordlistEntry.count).to eq(0)
+          end
+        end
+
+        context 'and matches an existing id' do
+          xit 'throws'
+        end
       end
     end
 

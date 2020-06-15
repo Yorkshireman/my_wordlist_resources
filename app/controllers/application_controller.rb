@@ -6,6 +6,10 @@ class ApplicationController < ActionController::API
     response.headers['Content-Type'] = 'application/vnd.api+json'
   end
 
+  rescue_from 'ActionController::BadRequest' do |e|
+    render_error_response(400, e)
+  end
+
   rescue_from 'ActionController::ParameterMissing' do |e|
     render_error_response(400, e)
   end

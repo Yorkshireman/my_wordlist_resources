@@ -56,6 +56,7 @@ class WordlistEntriesController < ApplicationController
     word || Word.create(word_params)
   end
 
+
   def parse_user_id_from_headers(headers)
     headers['Authorization'].split(' ').last.then do |token|
       decode_token(token)[0]['user_id']
@@ -98,10 +99,21 @@ class WordlistEntriesController < ApplicationController
     params.require(:wordlist_entry).permit(word: :name)[:word]
   end
 
+  def wordlist_entry_id_valid?(id)
+    valid_uuid_regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    valid_uuid_regex.match?(id)
+  end
+
   def wordlist_entry_params(word_id, wordlist_id)
-    params.require(:wordlist_entry).permit(:description, word: :id).tap do |sanitised_params|
+    params.require(:wordlist_entry).permit(:description, :id, word: :id).tap do |sanitised_params|
+      if sanitised_params[:id]
+        raise ActionController::BadRequest.new, 'Invalid WordlistEntry id' unless
+          wordlist_entry_id_valid?(sanitised_params[:id])
+      end
+
       return {
         description: sanitised_params[:description],
+        id: sanitised_params[:id],
         word_id: word_id,
         wordlist_id: wordlist_id
       }
