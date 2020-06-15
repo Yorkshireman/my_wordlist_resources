@@ -18,7 +18,7 @@ class ApplicationController < ActionController::API
     render_error_response(404, e)
   end
 
-  rescue_from 'ActiveRecord::RecordNotUnique' do |e|
+  rescue_from 'ActiveRecord::RecordNotUnique' do
     render_error_response(422, 'id is not unique')
   end
 

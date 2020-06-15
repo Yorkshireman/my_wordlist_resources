@@ -47,13 +47,13 @@ RSpec.describe WordlistEntry, type: :model do
     end
 
     it 'id must be unique' do
-      expect {
+      expect do
         described_class.create!(
           id: wordlist_entry2.id,
           word_id: word1.id,
           wordlist_id: wordlist1.id
         )
-      }.to raise_error(ActiveRecord::RecordNotUnique)
+      end.to raise_error(ActiveRecord::RecordNotUnique)
     end
   end
 

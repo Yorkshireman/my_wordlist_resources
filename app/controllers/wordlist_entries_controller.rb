@@ -56,7 +56,6 @@ class WordlistEntriesController < ApplicationController
     word || Word.create(word_params)
   end
 
-
   def parse_user_id_from_headers(headers)
     headers['Authorization'].split(' ').last.then do |token|
       decode_token(token)[0]['user_id']
