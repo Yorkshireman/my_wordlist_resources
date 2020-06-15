@@ -18,6 +18,10 @@ class ApplicationController < ActionController::API
     render_error_response(404, e)
   end
 
+  rescue_from 'ActiveRecord::RecordNotUnique' do |e|
+    render_error_response(422, 'id is not unique')
+  end
+
   rescue_from 'JWT::DecodeError' do |e|
     render_error_response(400, e)
   end

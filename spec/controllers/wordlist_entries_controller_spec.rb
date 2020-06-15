@@ -275,7 +275,7 @@ RSpec.describe WordlistEntriesController do
         let(:uuid) { SecureRandom.uuid }
         before :each do
           user_id = SecureRandom.uuid
-          Wordlist.create(user_id: user_id)
+          @wordlist = Wordlist.create(user_id: user_id)
           @token = generate_token(user_id)
           request.headers['Authorization'] = "Bearer #{@token}"
           request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
@@ -334,7 +334,33 @@ RSpec.describe WordlistEntriesController do
         end
 
         context 'and matches an existing id' do
-          xit 'throws'
+          before :each do
+            word = Word.create(name: 'foo')
+            wordlist_entry = WordlistEntry.create(wordlist_id: @wordlist.id, word_id: word.id)
+            post :create, params: {
+              wordlist_entry: {
+                id: wordlist_entry.id,
+                word: {
+                  name: 'wordname'
+                }
+              },
+              format: :json
+            }
+          end
+
+          it 'responds with 422 status code' do
+            expect(response).to have_http_status(422)
+          end
+
+          it 'error message is appropriate' do
+            expected_message = 'id is not unique'
+            actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+            expect(actual_message).to eq(expected_message)
+          end
+
+          it 'does not create a WordlistEntry' do
+            expect(WordlistEntry.count).to eq(1)
+          end
         end
       end
     end
