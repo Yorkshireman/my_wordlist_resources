@@ -26,6 +26,10 @@ class ApplicationController < ActionController::API
     render_error_response(400, e)
   end
 
+  rescue_from 'JWT::ExpiredSignature' do |e|
+    render_error_response(401, e)
+  end
+
   private
 
   def check_authorisation_header
