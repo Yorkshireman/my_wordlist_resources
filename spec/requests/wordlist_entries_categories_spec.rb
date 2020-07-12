@@ -4,7 +4,7 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/relationships/categories response', type: :request, focus: true do
+RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/relationships/categories response', type: :request do
   include TokenHelper
   let(:category_id) { SecureRandom.uuid }
   let(:category_name) { 'noun' }
