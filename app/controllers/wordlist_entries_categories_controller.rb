@@ -1,18 +1,27 @@
 class WordlistEntriesCategoriesController < ApplicationController
   def create
-    category = Category.create(id: params[:wordlist_entries_category]['categories'][0]['id'], name: params[:wordlist_entries_category]['categories'][0]['name'])
     wordlist_entry = WordlistEntry.find(params[:wordlist_entry_id])
-    wordlist_entry.categories << category
+    wordlist_entries_category_params[:categories].each do |category_params|
+      @category = Category.create(category_params)
+      wordlist_entry.categories << @category
+    end
+
     render json: {
       data: {
         type: 'wordlist-entry',
         id: wordlist_entry.id,
         attributes: {
           categories: [
-            JSON.parse(category.to_json(only: [:id, :name]))
+            JSON.parse(@category.to_json(only: [:id, :name]))
           ]
         }
       }
     }, status: :created
+  end
+
+  private
+
+  def wordlist_entries_category_params
+    params.require(:wordlist_entries_category).permit(categories: [:id, :name])
   end
 end
