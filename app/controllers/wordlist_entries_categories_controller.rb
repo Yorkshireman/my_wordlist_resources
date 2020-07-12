@@ -3,8 +3,8 @@ class WordlistEntriesCategoriesController < ApplicationController
     wordlist_entry = WordlistEntry.find(params[:wordlist_entry_id])
 
     wordlist_entries_category_params[:categories].each do |category_params|
-      @category = Category.create(category_params)
-      wordlist_entry.categories << @category
+      category = Category.create(category_params)
+      wordlist_entry.categories << category
     end
 
     render json: {
