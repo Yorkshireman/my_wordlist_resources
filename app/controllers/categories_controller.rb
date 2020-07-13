@@ -1,8 +1,8 @@
-class WordlistEntriesCategoriesController < ApplicationController
+class CategoriesController < ApplicationController
   def create
     wordlist_entry = WordlistEntry.find(params[:wordlist_entry_id])
 
-    wordlist_entries_category_params[:categories].each do |category_params|
+    wordlist_entry_categories_params.each do |category_params|
       category = Category.create(category_params)
       wordlist_entry.categories << category
     end
@@ -20,7 +20,9 @@ class WordlistEntriesCategoriesController < ApplicationController
 
   private
 
-  def wordlist_entries_category_params
-    params.require(:wordlist_entries_category).permit(categories: [:id, :name])
+  def wordlist_entry_categories_params
+    params.require(:categories).map do |category|
+      category.permit(:id, :name)
+    end
   end
 end
