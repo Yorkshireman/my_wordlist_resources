@@ -4,7 +4,7 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :request do
+RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :request, focus: true do
   include TokenHelper
   let(:category_id) { SecureRandom.uuid }
   let(:category_name) { 'noun' }
@@ -39,20 +39,23 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     expect(response).to have_http_status(201)
   end
 
-  it 'response has correct body' do
-    expected_body = {
-      data: {
-        type: 'wordlist-entry',
-        id: wordlist_entry.id,
-        attributes: {
-          categories: [
-            { id: category_id, name: category_name }
-          ]
-        }
-      }
-    }
+  describe 'body' do
+    before :each do
+      @body = JSON.parse(response.body).deep_symbolize_keys
+    end
 
-    actual_body = JSON.parse(response.body).deep_symbolize_keys
-    expect(actual_body).to eq(expected_body)
+    it 'has type' do
+      expect(@body[:data][:type]).to eq('wordlist-entry')
+    end
+
+    it 'has id' do
+      expect(@body[:data][:id]).to eq(wordlist_entry.id)
+    end
+
+    it 'has categories' do
+      expect(@body[:data][:attributes][:categories]).to eq(
+        [{ id: category_id, name: category_name }]
+      )
+    end
   end
 end
