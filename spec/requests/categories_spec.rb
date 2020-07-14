@@ -4,7 +4,7 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :request, focus: true do
+RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :request do
   include TokenHelper
   let(:category_id) { SecureRandom.uuid }
   let(:category_name) { 'noun' }
@@ -56,6 +56,10 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       expect(@body[:data][:attributes][:categories]).to eq(
         [{ id: category_id, name: category_name }]
       )
+    end
+
+    it 'has a token' do
+      expect(@body[:data][:token]).to eq(generate_token(user_id))
     end
   end
 end
