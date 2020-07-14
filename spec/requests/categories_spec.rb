@@ -62,4 +62,6 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       expect(@body[:data][:token]).to eq(generate_token(user_id))
     end
   end
+
+  # context 'when some categories already exist'
 end

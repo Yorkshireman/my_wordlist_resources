@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe WordlistEntry, type: :model do
+  let(:category1) { Category.create(name: 'noun') }
+  let(:category2) { Category.create(name: 'verb') }
   let(:wordlist1) { Wordlist.create(user_id: SecureRandom.uuid) }
   let(:word1) { Word.create(name: 'foobar') }
   let(:wordlist_entry) do
@@ -66,5 +68,15 @@ RSpec.describe WordlistEntry, type: :model do
   it 'is searchable by the id' do
     id = wordlist_entry.id
     expect(described_class.find(id)).to eq wordlist_entry
+  end
+
+  it 'can add a category' do
+    wordlist_entry.categories << category1
+    expect(wordlist_entry.categories).to eq([category1])
+  end
+
+  it 'cannot add same category twice' do
+    wordlist_entry.categories << category1
+    expect { wordlist_entry.categories << category1 }.to change { wordlist_entry.categories.count }.by 0
   end
 end
