@@ -1,7 +1,7 @@
 class Category < ApplicationRecord
   self.implicit_order_column = 'name' # write a test for this
-  has_many :cars
-  has_many :wordlist_entries, through: :cars
+  has_many :word_categories
+  has_many :wordlist_entries, through: :word_categories
   has_many :words, through: :wordlist_entries
   validate :id_not_changed
   validates :name, presence: true

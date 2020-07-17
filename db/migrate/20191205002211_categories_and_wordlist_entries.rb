@@ -15,7 +15,7 @@ class CategoriesAndWordlistEntries < ActiveRecord::Migration[6.0]
       t.timestamps
     end
 
-    create_table :cars, id: :uuid do |t|
+    create_table :word_categories, id: :uuid do |t|
       t.belongs_to :category, type: :uuid
       t.belongs_to :wordlist_entry, type: :uuid
 

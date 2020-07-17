@@ -16,20 +16,20 @@ ActiveRecord::Schema.define(version: 2020_07_17_181253) do
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
-  create_table "cars", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "category_id"
-    t.uuid "wordlist_entry_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["category_id", "wordlist_entry_id"], name: "index_cars_on_category_id_and_wordlist_entry_id", unique: true
-    t.index ["category_id"], name: "index_cars_on_category_id"
-    t.index ["wordlist_entry_id"], name: "index_cars_on_wordlist_entry_id"
-  end
-
   create_table "categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "word_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "category_id"
+    t.uuid "wordlist_entry_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["category_id", "wordlist_entry_id"], name: "index_word_categories_on_category_id_and_wordlist_entry_id", unique: true
+    t.index ["category_id"], name: "index_word_categories_on_category_id"
+    t.index ["wordlist_entry_id"], name: "index_word_categories_on_wordlist_entry_id"
   end
 
   create_table "wordlist_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
