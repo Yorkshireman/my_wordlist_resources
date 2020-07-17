@@ -74,6 +74,7 @@ class WordlistEntriesController < ApplicationController
   def parse_wordlist_entry(wordlist_entry, word = nil)
     wordlist_entry_word = word || wordlist_entry.word
     {
+      categories: wordlist_entry.categories.to_json,
       word: {
         id: wordlist_entry_word.id,
         name: wordlist_entry_word.name,
