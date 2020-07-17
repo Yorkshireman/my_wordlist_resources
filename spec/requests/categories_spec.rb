@@ -79,8 +79,13 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
     end
 
+    it 'responds with 201 status' do
+      expect(response).to have_http_status(201)
+    end
+
     it 'only new categories are added' do
       body = JSON.parse(response.body).deep_symbolize_keys
+      expect(wordlist_entry.categories.count).to eq(2)
       expect(body[:data][:attributes][:categories]).to eq(
         [
           { id: category_id, name: category_name },
