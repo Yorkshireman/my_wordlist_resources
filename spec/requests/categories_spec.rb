@@ -20,7 +20,6 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
   let(:wordlist) { Wordlist.create(user_id: user_id) }
   let(:wordlist_entry) { WordlistEntry.create(word_id: word.id, wordlist_id: wordlist.id) }
 
-
   context 'when the WordlistEntry has no categories yet' do
     let(:params) do
       {
