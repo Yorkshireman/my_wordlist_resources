@@ -3,7 +3,8 @@ class WordlistEntry < ApplicationRecord
 
   belongs_to :word
   belongs_to :wordlist
-  has_and_belongs_to_many :categories, optional: true
+  has_many :cars
+  has_many :categories, through: :cars
 
   validate :id_not_changed
   validates :word_id, presence: true

@@ -77,6 +77,6 @@ RSpec.describe WordlistEntry, type: :model do
 
   it 'cannot add same category twice' do
     wordlist_entry.categories << category1
-    expect { wordlist_entry.categories << category1 }.to change { wordlist_entry.categories.count }.by 0
+    expect { wordlist_entry.categories << category1 }.to raise_error(ActiveRecord::RecordNotUnique)
   end
 end
