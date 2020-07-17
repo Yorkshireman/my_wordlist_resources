@@ -9,7 +9,7 @@ class CategoriesController < ApplicationController
 
     wordlist_entry_categories_params.each do |category_params|
       category = Category.create(category_params)
-      wordlist_entry.categories << category
+      wordlist_entry.categories << category unless wordlist_entry.categories.include?(category)
     end
 
     render json: {

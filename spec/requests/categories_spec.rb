@@ -63,5 +63,30 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     end
   end
 
-  # context 'when some categories already exist'
+  context 'when some categories already exist' do
+    let(:new_category_id) { SecureRandom.uuid }
+    let(:new_category_name) { 'verb' }
+    let(:params) do
+      {
+        categories: [
+          { id: category_id, name: category_name },
+          { id: new_category_id, name: new_category_name }
+        ]
+      }
+    end
+
+    before :each do
+      post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
+    end
+
+    it 'only new categories are added' do
+      body = JSON.parse(response.body).deep_symbolize_keys
+      expect(body[:data][:attributes][:categories]).to eq(
+        [
+          { id: category_id, name: category_name },
+          { id: new_category_id, name: new_category_name }
+        ]
+      )
+    end
+  end
 end
