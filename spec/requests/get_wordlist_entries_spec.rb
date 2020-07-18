@@ -12,13 +12,17 @@ end
 def create_wordlist_entries
   @word = Word.create(name: 'capable')
   @word2 = Word.create(name: 'rot')
-  WordlistEntry.create(
+  wle1 = WordlistEntry.create(
     word_id: @word.id,
     wordlist_id: @wordlist_id,
     description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
   )
   sleep(0.1)
-  WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
+  wle2 = WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
+  @category1 = Category.create(name: 'verb')
+  @category2 = Category.create(name: 'adjective')
+  wle1.categories << @category1
+  wle2.categories << @category2
 end
 
 RSpec.describe 'GET /wordlist_entries response', type: :request do
@@ -61,7 +65,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
           wordlist_entries: [
             {
               attributes: {
-                categories: [],
+                categories: [{ id: @category2.id, name: @category2.name }],
                 created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
                 description: 'the process of decaying',
                 word: {
@@ -75,7 +79,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
             },
             {
               attributes: {
-                categories: [],
+                categories: [{ id: @category1.id, name: @category1.name }],
                 created_at: JSON.parse(@wordlist_entries_created_at[0].to_json),
                 description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing',
                 word: {
