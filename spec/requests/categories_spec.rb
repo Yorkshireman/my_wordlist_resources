@@ -6,16 +6,17 @@ require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :request do
   include TokenHelper
+  let(:category) { Category.create(id: category_id, name: category_name) }
   let(:category_id) { SecureRandom.uuid }
   let(:category_name) { 'noun' }
-  let(:user_id) { SecureRandom.uuid }
-  let(:token) { generate_token(user_id) }
   let(:headers) do
     {
       'Authorization' => "Bearer #{token}",
       'CONTENT_TYPE' => 'application/vnd.api+json'
     }
   end
+  let(:token) { generate_token(user_id) }
+  let(:user_id) { SecureRandom.uuid }
   let(:word) { Word.create(name: 'table') }
   let(:wordlist) { Wordlist.create(user_id: user_id) }
   let(:wordlist_entry) { WordlistEntry.create(word_id: word.id, wordlist_id: wordlist.id) }
@@ -80,8 +81,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     end
 
     before :each do
-      existing_category = Category.create(id: category_id, name: category_name)
-      wordlist_entry.categories << existing_category
+      wordlist_entry.categories << category
       post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
     end
 
@@ -94,7 +94,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       expect(wordlist_entry.categories.count).to eq(2)
       expect(body[:data][:attributes][:categories]).to eq(
         [
-          { id: category_id, name: category_name },
+          { id: category.id, name: category.name },
           { id: new_category_id, name: new_category_name }
         ]
       )
