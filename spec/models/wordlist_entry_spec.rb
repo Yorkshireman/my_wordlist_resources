@@ -79,4 +79,14 @@ RSpec.describe WordlistEntry, type: :model do
     wordlist_entry.categories << category1
     expect { wordlist_entry.categories << category1 }.to raise_error(ActiveRecord::RecordNotUnique)
   end
+
+  it 'can add a category that already belongs to another WordlistEntry' do
+    wordlist = Wordlist.create(user_id: SecureRandom.uuid)
+    word = Word.create(name: 'fizzbuzz')
+    wordlist_entry2 = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id)
+    wordlist_entry2.categories << category1
+
+    wordlist_entry.categories << category1
+    expect(wordlist_entry.categories).to eq([category1])
+  end
 end

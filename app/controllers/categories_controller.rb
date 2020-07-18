@@ -8,7 +8,8 @@ class CategoriesController < ApplicationController
     wordlist_entry = WordlistEntry.find(params[:wordlist_entry_id])
 
     wordlist_entry_categories_params.each do |category_params|
-      category = Category.create(category_params)
+      Category.exists?(category_params[:id]) || Category.create(category_params)
+      category = Category.find(category_params[:id])
       wordlist_entry.categories << category unless wordlist_entry.categories.include?(category)
     end
 

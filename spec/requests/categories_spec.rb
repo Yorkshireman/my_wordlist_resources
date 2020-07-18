@@ -39,7 +39,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       expect(wordlist_entry.categories.first.name).to eq(category_name)
     end
 
-    it 'responds with 201 status' do
+    it 'returns 201' do
       expect(response).to have_http_status(201)
     end
 
@@ -85,7 +85,44 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
     end
 
-    it 'responds with 201 status' do
+    it 'returns 201' do
+      expect(response).to have_http_status(201)
+    end
+
+    it 'only new categories are added and existing one is not duplicated' do
+      body = JSON.parse(response.body).deep_symbolize_keys
+      expect(wordlist_entry.categories.count).to eq(2)
+      expect(body[:data][:attributes][:categories]).to eq(
+        [
+          { id: category.id, name: category.name },
+          { id: new_category_id, name: new_category_name }
+        ]
+      )
+    end
+  end
+
+  context 'when one of the two received categories already exists on a different WordlistEntry' do
+    let(:new_category_id) { SecureRandom.uuid }
+    let(:new_category_name) { 'verb' }
+    let(:noun2) { Word.create(name: 'chair') }
+    let(:params) do
+      {
+        categories: [
+          { id: category.id, name: category.name },
+          { id: new_category_id, name: new_category_name }
+        ]
+      }
+    end
+
+    before :each do
+      pre_existing_wordlist_entry = WordlistEntry.create(wordlist_id: wordlist.id, word_id: noun2.id)
+      pre_existing_wordlist_entry.categories << category
+      expect(pre_existing_wordlist_entry.categories.first.name).to eq('noun')
+
+      post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
+    end
+
+    it 'returns 201' do
       expect(response).to have_http_status(201)
     end
 
