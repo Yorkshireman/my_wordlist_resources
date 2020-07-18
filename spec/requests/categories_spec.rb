@@ -80,6 +80,8 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     end
 
     before :each do
+      existing_category = Category.create(id: category_id, name: category_name)
+      wordlist_entry.categories << existing_category
       post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
     end
 
@@ -87,7 +89,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       expect(response).to have_http_status(201)
     end
 
-    it 'only new categories are added' do
+    it 'only new categories are added and existing one is not duplicated' do
       body = JSON.parse(response.body).deep_symbolize_keys
       expect(wordlist_entry.categories.count).to eq(2)
       expect(body[:data][:attributes][:categories]).to eq(

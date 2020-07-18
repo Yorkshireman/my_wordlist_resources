@@ -10,6 +10,7 @@ RSpec.describe WordlistEntriesController do
     Wordlist.destroy_all
     WordlistEntry.destroy_all
     Word.destroy_all
+    Category.destroy_all
   end
 
   describe '#index' do
@@ -111,6 +112,7 @@ RSpec.describe WordlistEntriesController do
               token: @token,
               type: 'wordlist-entry',
               attributes: {
+                categories: [],
                 created_at: JSON.parse(@wordlist_entry_created_at.to_json),
                 description: 'something to put things on',
                 word: {
@@ -196,6 +198,7 @@ RSpec.describe WordlistEntriesController do
               token: @token,
               type: 'wordlist-entry',
               attributes: {
+                categories: [],
                 created_at: JSON.parse(@wordlist_entry_created_at.to_json),
                 description: 'something to put things on',
                 word: {

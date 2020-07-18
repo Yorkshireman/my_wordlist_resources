@@ -23,12 +23,15 @@ end
 
 RSpec.describe 'GET /wordlist_entries response', type: :request do
   include TokenHelper
+  before :all do
+    Wordlist.destroy_all
+    Word.destroy_all
+    WordlistEntry.destroy_all
+    Category.destroy_all
+  end
 
   context 'when request is valid' do
     before :each do
-      Wordlist.destroy_all
-      Word.destroy_all
-      WordlistEntry.destroy_all
       create_wordlist
       token = generate_token(@user_id)
       headers = {
@@ -58,6 +61,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
           wordlist_entries: [
             {
               attributes: {
+                categories: [],
                 created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
                 description: 'the process of decaying',
                 word: {
@@ -71,6 +75,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
             },
             {
               attributes: {
+                categories: [],
                 created_at: JSON.parse(@wordlist_entries_created_at[0].to_json),
                 description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing',
                 word: {
