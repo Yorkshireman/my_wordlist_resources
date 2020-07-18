@@ -74,7 +74,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     let(:params) do
       {
         categories: [
-          { id: category_id, name: category_name },
+          { id: SecureRandom.uuid, name: category_name },
           { id: new_category_id, name: new_category_name }
         ]
       }
@@ -108,7 +108,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     let(:params) do
       {
         categories: [
-          { id: category.id, name: category.name },
+          { id: SecureRandom.uuid, name: category.name },
           { id: new_category_id, name: new_category_name }
         ]
       }

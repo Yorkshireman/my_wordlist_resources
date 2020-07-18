@@ -29,7 +29,7 @@ class CategoriesController < ApplicationController
 
   def find_or_create_category(category_params)
     raise_error ArgumentError.new('No category params provided') if category_params.empty?
-    return Category.find(category_params[:id]) if Category.exists?(category_params[:id])
+    return Category.find_by(name: category_params[:name]) if Category.exists?(name: category_params[:name])
 
     Category.create(category_params)
   end
