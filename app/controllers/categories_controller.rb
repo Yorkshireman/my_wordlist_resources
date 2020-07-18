@@ -8,8 +8,7 @@ class CategoriesController < ApplicationController
     wordlist_entry = WordlistEntry.find(params[:wordlist_entry_id])
 
     wordlist_entry_categories_params.each do |category_params|
-      Category.exists?(category_params[:id]) || Category.create(category_params)
-      category = Category.find(category_params[:id])
+      category = find_or_create_category(category_params)
       wordlist_entry.categories << category unless wordlist_entry.categories.include?(category)
     end
 
@@ -27,6 +26,13 @@ class CategoriesController < ApplicationController
   # rubocop:enable Metrics/AbcSize
 
   private
+
+  def find_or_create_category(category_params)
+    raise_error ArgumentError.new('No category params provided') if category_params.empty?
+    return Category.find(category_params[:id]) if Category.exists?(category_params[:id])
+
+    Category.create(category_params)
+  end
 
   def parse_user_id_from_headers(headers)
     headers['Authorization'].split(' ').last.then do |token|
