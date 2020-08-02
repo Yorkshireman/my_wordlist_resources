@@ -77,9 +77,7 @@ RSpec.describe WordlistEntriesController do
       end
 
       it 'error message is appropriate' do
-        expected_message = "Couldn't find Wordlist"
-        actual_message = @response_body[:errors][0][:title]
-        expect(actual_message).to eq(expected_message)
+        expect(@response_body[:errors][0][:title]).to eq("Couldn't find Wordlist")
       end
     end
   end
