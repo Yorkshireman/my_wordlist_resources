@@ -1,8 +1,6 @@
 require_relative '../helpers/token_helper'
-require_relative '../../constants'
 
 class WordlistEntriesController < ApplicationController
-  include Constants
   include TokenHelper
   # rubocop:disable Metrics/AbcSize
   def create
@@ -102,7 +100,7 @@ class WordlistEntriesController < ApplicationController
   end
 
   def wordlist_entry_id_valid?(id)
-    uuid_regex.match?(id)
+    VALID_UUID_REGEX.match?(id)
   end
 
   def wordlist_entry_params(word_id, wordlist_id)

@@ -1,8 +1,6 @@
 require 'rails_helper'
-require_relative '../../constants'
 
 RSpec.describe Category, type: :model do
-  include Constants
   let(:category) do
     described_class.create!(name: 'noun')
   end
@@ -33,7 +31,7 @@ RSpec.describe Category, type: :model do
 
     it "if id isn't a valid UUID, one is created" do
       category = described_class.create(id: 'bogus-id', name: 'household')
-      expect(uuid_regex.match?(category.id)).to be true
+      expect(VALID_UUID_REGEX.match?(category.id)).to be true
     end
 
     it 'id must be unique' do

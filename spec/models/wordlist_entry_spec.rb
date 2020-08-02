@@ -1,8 +1,6 @@
 require 'rails_helper'
-require_relative '../../constants'
 
 RSpec.describe WordlistEntry, type: :model do
-  include Constants
   let(:category1) { Category.create(name: 'noun') }
   let(:category2) { Category.create(name: 'verb') }
   let(:wordlist1) { Wordlist.create(user_id: SecureRandom.uuid) }
@@ -47,7 +45,7 @@ RSpec.describe WordlistEntry, type: :model do
         wordlist_id: wordlist1.id
       )
 
-      expect(uuid_regex.match?(wordlist_entry.id)).to be true
+      expect(VALID_UUID_REGEX.match?(wordlist_entry.id)).to be true
     end
 
     it 'id must be unique' do
