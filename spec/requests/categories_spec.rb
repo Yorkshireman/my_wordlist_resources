@@ -34,7 +34,7 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
     end
 
-    it 'adds a Category to a WordlistEntry' do # improve test name
+    it 'adds Category to WordlistEntry' do
       expect(wordlist_entry.categories.first.id).to eq(category_id)
       expect(wordlist_entry.categories.first.name).to eq(category_name)
     end
