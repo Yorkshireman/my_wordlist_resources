@@ -74,6 +74,7 @@ class WordlistEntriesController < ApplicationController
   def parse_wordlist_entry(wordlist_entry, word = nil)
     wordlist_entry_word = word || wordlist_entry.word
     {
+      categories: JSON.parse(wordlist_entry.categories.order(:name).to_json(only: [:id, :name])),
       word: {
         id: wordlist_entry_word.id,
         name: wordlist_entry_word.name,
@@ -99,8 +100,7 @@ class WordlistEntriesController < ApplicationController
   end
 
   def wordlist_entry_id_valid?(id)
-    valid_uuid_regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/
-    valid_uuid_regex.match?(id)
+    VALID_UUID_REGEX.match?(id)
   end
 
   def wordlist_entry_params(word_id, wordlist_id)

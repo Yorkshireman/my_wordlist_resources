@@ -3,13 +3,18 @@ require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe WordlistEntriesController do
   include TokenHelper
+  let(:cat1) { Category.create(name: 'noun') }
+  let(:cat2) { Category.create(name: 'verb') }
+  let(:cat3) { Category.create(name: 'adjective') }
+  let(:cat4) { Category.create(name: 'household') }
   let(:user_id_1) { SecureRandom.uuid }
   let(:user_id_2) { SecureRandom.uuid }
 
-  before :each do
+  before :all do
     Wordlist.destroy_all
     WordlistEntry.destroy_all
     Word.destroy_all
+    Category.destroy_all
   end
 
   describe '#index' do
@@ -18,7 +23,8 @@ RSpec.describe WordlistEntriesController do
         @wordlist = wordlist
         %w[foo fizz buzz].each do |word_name|
           Word.create(name: word_name).tap do |word|
-            WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
+            wordlist_entry = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
+            wordlist_entry.categories.concat([cat1, cat2, cat3, cat4])
           end
         end
 
@@ -28,10 +34,11 @@ RSpec.describe WordlistEntriesController do
       end
 
       get :index
+      @response_body = JSON.parse(response.body).deep_symbolize_keys
     end
 
     it 'orders WordlistEntries by created_at attribute by newest first' do
-      words_from_response = JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].map do |entry|
+      words_from_response = @response_body[:data][:wordlist_entries].map do |entry|
         entry[:attributes][:word]
       end
 
@@ -40,10 +47,21 @@ RSpec.describe WordlistEntriesController do
     end
 
     it 'includes wordlist_id' do
-      actual_wordlist_id = JSON.parse(response.body)
-                               .deep_symbolize_keys[:data][:wordlist_entries][0][:attributes][:wordlist_id]
+      actual_wordlist_id = @response_body[:data][:wordlist_entries][0][:attributes][:wordlist_id]
       expected_wordlist_id = @wordlist.id
       expect(actual_wordlist_id).to eq(expected_wordlist_id)
+    end
+
+    it 'WordlistEntry categories are returned in name order' do
+      expect(@response_body[:data][:wordlist_entries].first[:attributes][:categories])
+        .to eq(
+          [
+            { id: cat3.id, name: 'adjective' },
+            { id: cat4.id, name: 'household' },
+            { id: cat1.id, name: 'noun' },
+            { id: cat2.id, name: 'verb' }
+          ]
+        )
     end
 
     context 'when the supplied user_id is not associated with any Wordlist' do
@@ -51,6 +69,7 @@ RSpec.describe WordlistEntriesController do
         token = generate_token(SecureRandom.uuid)
         request.headers['Authorization'] = "Bearer #{token}"
         get :index
+        @response_body = JSON.parse(response.body).deep_symbolize_keys
       end
 
       it 'responds with 404' do
@@ -58,9 +77,7 @@ RSpec.describe WordlistEntriesController do
       end
 
       it 'error message is appropriate' do
-        expected_message = "Couldn't find Wordlist"
-        actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
-        expect(actual_message).to eq(expected_message)
+        expect(@response_body[:errors][0][:title]).to eq("Couldn't find Wordlist")
       end
     end
   end
@@ -83,6 +100,7 @@ RSpec.describe WordlistEntriesController do
             format: :json
           }
 
+          @response_body = JSON.parse(response.body).deep_symbolize_keys
           @token = JWT.encode(
             { user_id: user_id_1 },
             ENV['JWT_SECRET_KEY'],
@@ -111,6 +129,7 @@ RSpec.describe WordlistEntriesController do
               token: @token,
               type: 'wordlist-entry',
               attributes: {
+                categories: [],
                 created_at: JSON.parse(@wordlist_entry_created_at.to_json),
                 description: 'something to put things on',
                 word: {
@@ -123,8 +142,7 @@ RSpec.describe WordlistEntriesController do
             }
           }
 
-          actual_body = JSON.parse(response.body).deep_symbolize_keys
-          expect(actual_body).to eq(expected_body)
+          expect(@response_body).to eq(expected_body)
         end
       end
 
@@ -159,6 +177,7 @@ RSpec.describe WordlistEntriesController do
             format: :json
           }
 
+          @response_body = JSON.parse(response.body).deep_symbolize_keys
           @token = JWT.encode(
             { user_id: user_id_1 },
             ENV['JWT_SECRET_KEY'],
@@ -185,8 +204,7 @@ RSpec.describe WordlistEntriesController do
         end
 
         it 'token is correct' do
-          actual_body = JSON.parse(response.body).deep_symbolize_keys
-          expect(actual_body[:data][:token]).to eq(@token)
+          expect(@response_body[:data][:token]).to eq(@token)
         end
 
         it 'has correct body' do
@@ -196,6 +214,7 @@ RSpec.describe WordlistEntriesController do
               token: @token,
               type: 'wordlist-entry',
               attributes: {
+                categories: [],
                 created_at: JSON.parse(@wordlist_entry_created_at.to_json),
                 description: 'something to put things on',
                 word: {
@@ -208,13 +227,11 @@ RSpec.describe WordlistEntriesController do
             }
           }
 
-          actual_body = JSON.parse(response.body).deep_symbolize_keys
-
           # to produce shorter diffs for easier debugging in Travis CI
           expected_body[:data].delete(:token)
-          actual_body[:data].delete(:token)
+          @response_body[:data].delete(:token)
 
-          expect(actual_body).to eq(expected_body)
+          expect(@response_body).to eq(expected_body)
         end
 
         context 'when Word name is not provided in the request' do
@@ -296,11 +313,12 @@ RSpec.describe WordlistEntriesController do
               },
               format: :json
             }
+
+            @response_body = JSON.parse(response.body).deep_symbolize_keys
           end
 
           it 'creates WordlistEntry with provided id' do
-            body = JSON.parse(response.body).deep_symbolize_keys
-            expect(body[:data][:id]).to eq(uuid)
+            expect(@response_body[:data][:id]).to eq(uuid)
           end
         end
 
@@ -315,6 +333,8 @@ RSpec.describe WordlistEntriesController do
               },
               format: :json
             }
+
+            @response_body = JSON.parse(response.body).deep_symbolize_keys
           end
 
           it 'responds with 400 status code' do
@@ -323,7 +343,7 @@ RSpec.describe WordlistEntriesController do
 
           it 'error message is appropriate' do
             expected_message = 'Invalid WordlistEntry id'
-            actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
+            actual_message = @response_body[:errors][0][:title]
             expect(actual_message).to eq(expected_message)
           end
 
@@ -345,6 +365,8 @@ RSpec.describe WordlistEntriesController do
               },
               format: :json
             }
+
+            @response_body = JSON.parse(response.body).deep_symbolize_keys
           end
 
           it 'responds with 422 status code' do
@@ -352,9 +374,7 @@ RSpec.describe WordlistEntriesController do
           end
 
           it 'error message is appropriate' do
-            expected_message = 'id is not unique'
-            actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
-            expect(actual_message).to eq(expected_message)
+            expect(@response_body[:errors][0][:title]).to eq('id is not unique')
           end
 
           it 'does not create a WordlistEntry' do
@@ -380,6 +400,8 @@ RSpec.describe WordlistEntriesController do
             },
             format: :json
           }
+
+          @response_body = JSON.parse(response.body).deep_symbolize_keys
         end
 
         it 'responds with 404' do
@@ -387,9 +409,7 @@ RSpec.describe WordlistEntriesController do
         end
 
         it 'error message is appropriate' do
-          expected_message = "Couldn't find Wordlist"
-          actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
-          expect(actual_message).to eq(expected_message)
+          expect(@response_body[:errors][0][:title]).to eq("Couldn't find Wordlist")
         end
       end
 
@@ -404,6 +424,8 @@ RSpec.describe WordlistEntriesController do
             wordlist_id: wordlist.id,
             format: :json
           }
+
+          @response_body = JSON.parse(response.body).deep_symbolize_keys
         end
 
         it 'responds with 400 http status' do
@@ -411,9 +433,7 @@ RSpec.describe WordlistEntriesController do
         end
 
         it 'error message is appropriate' do
-          expected_message = 'nil wordlist_entry params'
-          actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
-          expect(actual_message).to eq(expected_message)
+          expect(@response_body[:errors][0][:title]).to eq('nil wordlist_entry params')
         end
 
         it 'does not create a Word' do

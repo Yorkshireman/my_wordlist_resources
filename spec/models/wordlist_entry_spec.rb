@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe WordlistEntry, type: :model do
+  let(:category1) { Category.create(name: 'noun') }
+  let(:category2) { Category.create(name: 'verb') }
   let(:wordlist1) { Wordlist.create(user_id: SecureRandom.uuid) }
   let(:word1) { Word.create(name: 'foobar') }
   let(:wordlist_entry) do
@@ -43,7 +45,7 @@ RSpec.describe WordlistEntry, type: :model do
         wordlist_id: wordlist1.id
       )
 
-      expect(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.match?(wordlist_entry.id)).to be true
+      expect(VALID_UUID_REGEX.match?(wordlist_entry.id)).to be true
     end
 
     it 'id must be unique' do
@@ -66,5 +68,25 @@ RSpec.describe WordlistEntry, type: :model do
   it 'is searchable by the id' do
     id = wordlist_entry.id
     expect(described_class.find(id)).to eq wordlist_entry
+  end
+
+  it 'can add a category' do
+    wordlist_entry.categories << category1
+    expect(wordlist_entry.categories).to eq([category1])
+  end
+
+  it 'cannot add same category twice' do
+    wordlist_entry.categories << category1
+    expect { wordlist_entry.categories << category1 }.to raise_error(ActiveRecord::RecordNotUnique)
+  end
+
+  it 'can add a category that already belongs to another WordlistEntry' do
+    wordlist = Wordlist.create(user_id: SecureRandom.uuid)
+    word = Word.create(name: 'fizzbuzz')
+    wordlist_entry2 = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id)
+    wordlist_entry2.categories << category1
+
+    wordlist_entry.categories << category1
+    expect(wordlist_entry.categories).to eq([category1])
   end
 end

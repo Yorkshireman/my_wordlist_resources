@@ -1,10 +1,14 @@
 class WordlistEntry < ApplicationRecord
   self.implicit_order_column = 'created_at'
+
+  belongs_to :word
+  belongs_to :wordlist
+  has_many :word_categories
+  has_many :categories, through: :word_categories
+
   validate :id_not_changed
   validates :word_id, presence: true
   validates :wordlist_id, presence: true
-  belongs_to :word
-  belongs_to :wordlist
 
   private
 
