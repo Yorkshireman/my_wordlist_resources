@@ -1,5 +1,4 @@
 class Category < ApplicationRecord
-  self.implicit_order_column = 'name' # write a test for this
   has_many :word_categories
   has_many :wordlist_entries, through: :word_categories
   has_many :words, through: :wordlist_entries

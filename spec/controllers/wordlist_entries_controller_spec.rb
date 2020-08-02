@@ -3,6 +3,10 @@ require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe WordlistEntriesController do
   include TokenHelper
+  let(:cat1) { Category.create(name: 'noun') }
+  let(:cat2) { Category.create(name: 'verb') }
+  let(:cat3) { Category.create(name: 'adjective') }
+  let(:cat4) { Category.create(name: 'household') }
   let(:user_id_1) { SecureRandom.uuid }
   let(:user_id_2) { SecureRandom.uuid }
 
@@ -19,7 +23,11 @@ RSpec.describe WordlistEntriesController do
         @wordlist = wordlist
         %w[foo fizz buzz].each do |word_name|
           Word.create(name: word_name).tap do |word|
-            WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
+            wordlist_entry = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
+            wordlist_entry.categories << cat1
+            wordlist_entry.categories << cat2
+            wordlist_entry.categories << cat3
+            wordlist_entry.categories << cat4
           end
         end
 
@@ -45,6 +53,18 @@ RSpec.describe WordlistEntriesController do
                                .deep_symbolize_keys[:data][:wordlist_entries][0][:attributes][:wordlist_id]
       expected_wordlist_id = @wordlist.id
       expect(actual_wordlist_id).to eq(expected_wordlist_id)
+    end
+
+    it 'WordlistEntry categories are returned in name order' do
+      expect(JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].first[:attributes][:categories])
+        .to eq(
+          [
+            { id: cat3.id, name: cat3.name },
+            { id: cat4.id, name: cat4.name },
+            { id: cat1.id, name: cat1.name },
+            { id: cat2.id, name: cat2.name }
+          ]
+        )
     end
 
     context 'when the supplied user_id is not associated with any Wordlist' do
