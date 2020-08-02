@@ -56,10 +56,10 @@ RSpec.describe WordlistEntriesController do
       expect(JSON.parse(response.body).deep_symbolize_keys[:data][:wordlist_entries].first[:attributes][:categories])
         .to eq(
           [
-            { id: cat3.id, name: cat3.name },
-            { id: cat4.id, name: cat4.name },
-            { id: cat1.id, name: cat1.name },
-            { id: cat2.id, name: cat2.name }
+            { id: cat3.id, name: 'adjective' },
+            { id: cat4.id, name: 'household' },
+            { id: cat1.id, name: 'noun' },
+            { id: cat2.id, name: 'verb' }
           ]
         )
     end
