@@ -137,8 +137,4 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       )
     end
   end
-
-  xit 'downcases categories'
-  xit 'strips whitespace'
-  xit 'has a character limit'
 end
