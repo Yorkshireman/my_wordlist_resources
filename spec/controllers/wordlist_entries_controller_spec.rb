@@ -24,10 +24,7 @@ RSpec.describe WordlistEntriesController do
         %w[foo fizz buzz].each do |word_name|
           Word.create(name: word_name).tap do |word|
             wordlist_entry = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
-            wordlist_entry.categories << cat1
-            wordlist_entry.categories << cat2
-            wordlist_entry.categories << cat3
-            wordlist_entry.categories << cat4
+            wordlist_entry.categories.concat([cat1, cat2, cat3, cat4])
           end
         end
 
