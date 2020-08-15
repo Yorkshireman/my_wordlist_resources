@@ -1,6 +1,5 @@
 require 'jwt'
 require 'rails_helper'
-require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
@@ -9,21 +8,14 @@ RSpec.describe 'GET /wordlist response', type: :request do
 
   describe 'when request is valid' do
     before :each do
-      Wordlist.destroy_all
-      user_id = SecureRandom.uuid
-      @wordlist = Wordlist.create(user_id: user_id)
-      token = generate_token(user_id)
+      @wordlist = create(:wordlist)
+      @token = generate_token(@wordlist.user_id)
       headers = {
-        'Authorization' => "Bearer #{token}",
+        'Authorization' => "Bearer #{@token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
       get '/wordlist', headers: headers
-      @token = JWT.encode(
-        { user_id: user_id },
-        ENV['JWT_SECRET_KEY'],
-        'HS256'
-      )
     end
 
     it 'is 200 status' do
