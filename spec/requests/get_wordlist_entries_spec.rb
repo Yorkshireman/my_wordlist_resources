@@ -4,27 +4,6 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-def create_wordlist
-  @user_id = SecureRandom.uuid
-  @wordlist_id = Wordlist.create(user_id: @user_id).id
-end
-
-def create_wordlist_entries
-  @word = Word.create(name: 'capable')
-  @word2 = Word.create(name: 'rot')
-  wle1 = WordlistEntry.create(
-    word_id: @word.id,
-    wordlist_id: @wordlist_id,
-    description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
-  )
-  sleep(0.1)
-  wle2 = WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist_id, description: 'the process of decaying')
-  @category1 = Category.create(name: 'verb')
-  @category2 = Category.create(name: 'adjective')
-  wle1.categories << @category1
-  wle2.categories << @category2
-end
-
 RSpec.describe 'GET /wordlist_entries response', type: :request do
   include TokenHelper
   before :all do
@@ -36,22 +15,35 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
   context 'when request is valid' do
     before :each do
-      create_wordlist
-      token = generate_token(@user_id)
+      @wordlist = create(:wordlist)
+      token = generate_token(@wordlist.user_id)
       headers = {
         'Authorization' => "Bearer #{token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      create_wordlist_entries
+      @word = create(:word, name: 'capable')
+      @word2 = create(:word, name: 'rot')
+      wle1 = create(:wordlist_entry,
+        word_id: @word.id,
+        wordlist_id: @wordlist.id,
+        description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
+      )
+      sleep(0.1)
+      wle2 = WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist.id, description: 'the process of decaying')
+      @category1 = Category.create(name: 'verb')
+      @category2 = Category.create(name: 'adjective')
+      wle1.categories << @category1
+      wle2.categories << @category2
+
       get '/wordlist_entries', headers: headers
       @token = JWT.encode(
-        { user_id: @user_id },
+        { user_id: @wordlist.user_id },
         ENV['JWT_SECRET_KEY'],
         'HS256'
       )
 
-      @wordlist_entries_created_at = Wordlist.find(@wordlist_id).wordlist_entries.map(&:created_at)
+      @wordlist_entries_created_at = Wordlist.find(@wordlist.id).wordlist_entries.map(&:created_at)
     end
 
     it 'is 200 status' do
@@ -71,11 +63,11 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
                 word: {
                   id: @word2.id,
                   name: 'rot',
-                  wordlist_ids: [@wordlist_id]
+                  wordlist_ids: [@wordlist.id]
                 },
-                wordlist_id: @wordlist_id
+                wordlist_id: @wordlist.id
               },
-              id: Wordlist.find(@wordlist_id).wordlist_entries[1].id
+              id: Wordlist.find(@wordlist.id).wordlist_entries[1].id
             },
             {
               attributes: {
@@ -85,11 +77,11 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
                 word: {
                   id: @word.id,
                   name: 'capable',
-                  wordlist_ids: [@wordlist_id]
+                  wordlist_ids: [@wordlist.id]
                 },
-                wordlist_id: @wordlist_id
+                wordlist_id: @wordlist.id
               },
-              id: Wordlist.find(@wordlist_id).wordlist_entries[0].id
+              id: Wordlist.find(@wordlist.id).wordlist_entries[0].id
             }
           ]
         }
