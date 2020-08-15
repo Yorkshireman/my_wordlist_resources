@@ -47,8 +47,7 @@ class ApplicationController < ActionController::API
   end
 
   def parse_user_id_from_token(token)
-    decoded_token = decode_token(token)[0]
-    decoded_token['user_id']
+    decode_token(token)[0]['user_id']
   end
 
   def render_error_response(status, message)
