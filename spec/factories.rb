@@ -23,6 +23,12 @@ FactoryBot.define do
     description { FFaker::Lorem.unique.phrase }
     word_id { create(:word).id }
     wordlist
+  end
+
+  factory :wordlist_entry_with_categories, class: WordlistEntry do
+    description { FFaker::Lorem.unique.phrase }
+    word_id { create(:word).id }
+    wordlist
 
     after :create do |wordlist_entry|
       create_list :word_category, 1, category: create(:category), wordlist_entry: wordlist_entry
@@ -30,7 +36,13 @@ FactoryBot.define do
   end
 end
 
-def wordlist_with_wordlist_entries(wordlist_entries_count: 2)
+def wordlist_with_wordlist_entries_with_categories(wordlist_entries_count: 2)
+  FactoryBot.create(:wordlist) do |wordlist|
+    FactoryBot.create_list(:wordlist_entry_with_categories, wordlist_entries_count, wordlist: wordlist)
+  end
+end
+
+def wordlist_with_wordlist_entries_no_categories(wordlist_entries_count: 2)
   FactoryBot.create(:wordlist) do |wordlist|
     FactoryBot.create_list(:wordlist_entry, wordlist_entries_count, wordlist: wordlist)
   end

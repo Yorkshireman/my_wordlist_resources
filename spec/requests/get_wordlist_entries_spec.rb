@@ -9,7 +9,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
   context 'when request is valid' do
     before :each do
-      @wordlist = wordlist_with_wordlist_entries
+      @wordlist = wordlist_with_wordlist_entries_with_categories
       @token = generate_token(@wordlist.user_id)
       headers = {
         'Authorization' => "Bearer #{@token}",
