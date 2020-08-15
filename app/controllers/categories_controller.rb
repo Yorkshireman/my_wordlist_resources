@@ -2,14 +2,10 @@ require_relative '../helpers/token_helper'
 
 class CategoriesController < ApplicationController
   include TokenHelper
-  # rubocop:disable Metrics/AbcSize
+
   def create
     wordlist_entry = WordlistEntry.find(params[:wordlist_entry_id])
-
-    wordlist_entry_categories_params.each do |category_params|
-      category = find_or_create_category(category_params)
-      wordlist_entry.categories << category unless wordlist_entry.categories.include?(category)
-    end
+    add_categories(wordlist_entry, wordlist_entry_categories_params)
 
     render json: {
       data: {
@@ -22,9 +18,15 @@ class CategoriesController < ApplicationController
       }
     }, status: :created
   end
-  # rubocop:enable Metrics/AbcSize
 
   private
+
+  def add_categories(wordlist_entry, categories)
+    categories.each do |category_params|
+      category = find_or_create_category(category_params)
+      wordlist_entry.categories << category unless wordlist_entry.categories.include?(category)
+    end
+  end
 
   def find_or_create_category(category_params)
     raise_error ArgumentError.new('No category params provided') if category_params.empty?
