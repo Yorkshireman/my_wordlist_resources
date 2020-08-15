@@ -113,8 +113,8 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
         get '/wordlist_entries'
       end
 
-      it 'returns 401' do
-        expect(response).to have_http_status(401)
+      it 'returns 400' do
+        expect(response).to have_http_status(400)
       end
 
       it 'error message is appropriate' do
