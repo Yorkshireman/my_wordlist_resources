@@ -6,38 +6,24 @@ require_relative '../../app/helpers/token_helper.rb'
 
 RSpec.describe 'GET /wordlist_entries response', type: :request do
   include TokenHelper
-  before :all do
-    Wordlist.destroy_all
-    Word.destroy_all
-    WordlistEntry.destroy_all
-    Category.destroy_all
-  end
 
   context 'when request is valid' do
     before :each do
       @wordlist = wordlist_with_wordlist_entries
-      token = generate_token(@wordlist.user_id)
+      @token = generate_token(@wordlist.user_id)
       headers = {
-        'Authorization' => "Bearer #{token}",
+        'Authorization' => "Bearer #{@token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      @word = @wordlist.wordlist_entries.first.word
-      @word2 = @wordlist.wordlist_entries.second.word
-      @wle1 = @wordlist.wordlist_entries.first
-      sleep(0.1)
-      @wle2 = @wordlist.wordlist_entries.second
-      @category1 = Category.create(name: 'verb')
-      @category2 = Category.create(name: 'adjective')
-      @wle1.categories << @category1
-      @wle2.categories << @category2
+      wle1 = @wordlist.wordlist_entries.first
+      wle2 = @wordlist.wordlist_entries.second
+      @category1 = create(:category)
+      @category2 = create(:category)
+      wle1.categories << @category1
+      wle2.categories << @category2
 
       get '/wordlist_entries', headers: headers
-      @token = JWT.encode(
-        { user_id: @wordlist.user_id },
-        ENV['JWT_SECRET_KEY'],
-        'HS256'
-      )
 
       @wordlist_entries_created_at = @wordlist.wordlist_entries.map(&:created_at)
     end
@@ -55,29 +41,29 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
               attributes: {
                 categories: [{ id: @category2.id, name: @category2.name }],
                 created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
-                description: @wle2.description,
+                description: @wordlist.wordlist_entries.second.description,
                 word: {
-                  id: @word2.id,
-                  name: @word2.name,
+                  id: @wordlist.wordlist_entries.second.word.id,
+                  name: @wordlist.wordlist_entries.second.word.name,
                   wordlist_ids: [@wordlist.id]
                 },
                 wordlist_id: @wordlist.id
               },
-              id: Wordlist.find(@wordlist.id).wordlist_entries[1].id
+              id: @wordlist.wordlist_entries.second.id
             },
             {
               attributes: {
                 categories: [{ id: @category1.id, name: @category1.name }],
                 created_at: JSON.parse(@wordlist_entries_created_at[0].to_json),
-                description: @wle1.description,
+                description: @wordlist.wordlist_entries.first.description,
                 word: {
-                  id: @word.id,
-                  name: @word.name,
+                  id: @wordlist.wordlist_entries.first.word.id,
+                  name: @wordlist.wordlist_entries.first.word.name,
                   wordlist_ids: [@wordlist.id]
                 },
                 wordlist_id: @wordlist.id
               },
-              id: Wordlist.find(@wordlist.id).wordlist_entries[0].id
+              id: @wordlist.wordlist_entries.first.id
             }
           ]
         }

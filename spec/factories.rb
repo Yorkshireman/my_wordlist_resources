@@ -2,12 +2,16 @@ require 'ffaker'
 require 'securerandom'
 
 FactoryBot.define do
-  factory :wordlist do
-    user_id { SecureRandom.uuid }
+  factory :category do
+    name { FFaker::Lorem.unique.word }
   end
 
   factory :word do
     name { FFaker::Lorem.unique.word }
+  end
+
+  factory :wordlist do
+    user_id { SecureRandom.uuid }
   end
 
   factory :wordlist_entry do
