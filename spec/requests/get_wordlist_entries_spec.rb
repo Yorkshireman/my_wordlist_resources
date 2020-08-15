@@ -15,26 +15,22 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
   context 'when request is valid' do
     before :each do
-      @wordlist = create(:wordlist)
+      @wordlist = wordlist_with_wordlist_entries
       token = generate_token(@wordlist.user_id)
       headers = {
         'Authorization' => "Bearer #{token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      @word = create(:word, name: 'capable')
-      @word2 = create(:word, name: 'rot')
-      wle1 = create(:wordlist_entry,
-        word_id: @word.id,
-        wordlist_id: @wordlist.id,
-        description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing'
-      )
+      @word = @wordlist.wordlist_entries.first.word
+      @word2 = @wordlist.wordlist_entries.second.word
+      @wle1 = @wordlist.wordlist_entries.first
       sleep(0.1)
-      wle2 = WordlistEntry.create(word_id: @word2.id, wordlist_id: @wordlist.id, description: 'the process of decaying')
+      @wle2 = @wordlist.wordlist_entries.second
       @category1 = Category.create(name: 'verb')
       @category2 = Category.create(name: 'adjective')
-      wle1.categories << @category1
-      wle2.categories << @category2
+      @wle1.categories << @category1
+      @wle2.categories << @category2
 
       get '/wordlist_entries', headers: headers
       @token = JWT.encode(
@@ -43,7 +39,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
         'HS256'
       )
 
-      @wordlist_entries_created_at = Wordlist.find(@wordlist.id).wordlist_entries.map(&:created_at)
+      @wordlist_entries_created_at = @wordlist.wordlist_entries.map(&:created_at)
     end
 
     it 'is 200 status' do
@@ -59,10 +55,10 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
               attributes: {
                 categories: [{ id: @category2.id, name: @category2.name }],
                 created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
-                description: 'the process of decaying',
+                description: @wle2.description,
                 word: {
                   id: @word2.id,
-                  name: 'rot',
+                  name: @word2.name,
                   wordlist_ids: [@wordlist.id]
                 },
                 wordlist_id: @wordlist.id
@@ -73,10 +69,10 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
               attributes: {
                 categories: [{ id: @category1.id, name: @category1.name }],
                 created_at: JSON.parse(@wordlist_entries_created_at[0].to_json),
-                description: 'having the ability, fitness, or quality necessary to do or achieve a specified thing',
+                description: @wle1.description,
                 word: {
                   id: @word.id,
-                  name: 'capable',
+                  name: @word.name,
                   wordlist_ids: [@wordlist.id]
                 },
                 wordlist_id: @wordlist.id

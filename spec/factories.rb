@@ -1,3 +1,4 @@
+require 'ffaker'
 require 'securerandom'
 
 FactoryBot.define do
@@ -6,11 +7,18 @@ FactoryBot.define do
   end
 
   factory :word do
-    name { 'factory_bot_word_name' }
+    name { FFaker::Lorem.unique.word }
   end
 
   factory :wordlist_entry do
+    description { FFaker::Lorem.unique.phrase }
     word_id { create(:word).id }
-    wordlist_id { create(:wordlist).id }
+    wordlist
+  end
+end
+
+def wordlist_with_wordlist_entries(wordlist_entries_count: 2)
+  FactoryBot.create(:wordlist) do |wordlist|
+    FactoryBot.create_list(:wordlist_entry, wordlist_entries_count, wordlist: wordlist)
   end
 end
