@@ -10,6 +10,11 @@ FactoryBot.define do
     name { FFaker::Lorem.unique.word }
   end
 
+  factory :word_category do
+    category
+    wordlist_entry
+  end
+
   factory :wordlist do
     user_id { SecureRandom.uuid }
   end
@@ -18,6 +23,10 @@ FactoryBot.define do
     description { FFaker::Lorem.unique.phrase }
     word_id { create(:word).id }
     wordlist
+
+    after :create do |wordlist_entry|
+      create_list :word_category, 1, category: create(:category), wordlist_entry: wordlist_entry
+    end
   end
 end
 

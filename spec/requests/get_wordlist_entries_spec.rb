@@ -18,10 +18,11 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
       wle1 = @wordlist.wordlist_entries.first
       wle2 = @wordlist.wordlist_entries.second
-      @category1 = create(:category)
-      @category2 = create(:category)
-      wle1.categories << @category1
-      wle2.categories << @category2
+      @category1 = wle1.categories.first
+      @category2 = wle2.categories.first
+      require 'byebug'; byebug
+      # wle1.categories << @category1
+      # wle2.categories << @category2
 
       get '/wordlist_entries', headers: headers
 
