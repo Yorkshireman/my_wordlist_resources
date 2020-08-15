@@ -1,7 +1,6 @@
 require_relative '../helpers/token_helper'
 
 class ApplicationController < ActionController::API
-  include TokenHelper
   before_action :parse_user_id_from_authorization_header
   after_action :set_headers
 
