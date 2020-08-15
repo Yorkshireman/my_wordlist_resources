@@ -1,5 +1,8 @@
+require_relative '../helpers/token_helper'
+
 class ApplicationController < ActionController::API
-  before_action :check_authorisation_header
+  include TokenHelper
+  before_action :parse_user_id_from_authorization_header
   before_action :set_headers
 
   def set_headers
@@ -32,8 +35,21 @@ class ApplicationController < ActionController::API
 
   private
 
-  def check_authorisation_header
-    render_error_response(401, 'missing Authorization header') unless request.headers['Authorization']
+  def parse_user_id_from_authorization_header
+    raise(ActionController::BadRequest.new, 'missing Authorization header') unless request.headers['Authorization']
+
+    @user_id = parse_token_from_headers(request.headers).then do |token|
+      parse_user_id_from_token(token) || raise(ActionController::BadRequest.new, 'Invalid token')
+    end
+  end
+
+  def parse_token_from_headers(headers)
+    headers['Authorization'].split(' ').last
+  end
+
+  def parse_user_id_from_token(token)
+    decoded_token = decode_token(token)[0]
+    decoded_token['user_id']
   end
 
   def render_error_response(status, message)

@@ -2,14 +2,13 @@ require_relative '../helpers/token_helper'
 
 class WordlistEntriesController < ApplicationController
   include TokenHelper
-  # rubocop:disable Metrics/AbcSize
+
   def create
     if params[:wordlist_entry].nil?
       return render_error_response(400, 'nil wordlist_entry params')
     end
 
-    user_id = parse_user_id_from_headers(request.headers)
-    wordlist = Wordlist.find_by!(user_id: user_id)
+    wordlist = Wordlist.find_by!(user_id: @user_id)
     @wordlist_id = wordlist.id
 
     word = find_or_create_word
@@ -17,7 +16,7 @@ class WordlistEntriesController < ApplicationController
 
     render json: {
       data: {
-        token: generate_token(user_id),
+        token: generate_token(@user_id),
         type: 'wordlist-entry',
         id: wordlist_entry.id,
         attributes: parse_wordlist_entry(wordlist_entry, word)
@@ -26,8 +25,7 @@ class WordlistEntriesController < ApplicationController
   end
 
   def index
-    user_id = parse_user_id_from_headers(request.headers)
-    wordlist = Wordlist.find_by!(user_id: user_id)
+    wordlist = Wordlist.find_by!(user_id: @user_id)
     wordlist_entries = wordlist.wordlist_entries.sort_by(&:created_at).reverse
     @wordlist_id = wordlist.id
 
@@ -40,7 +38,6 @@ class WordlistEntriesController < ApplicationController
       }
     end
   end
-  # rubocop:enable Metrics/AbcSize
 
   private
 
@@ -54,12 +51,6 @@ class WordlistEntriesController < ApplicationController
            end
 
     word || Word.create(word_params)
-  end
-
-  def parse_user_id_from_headers(headers)
-    headers['Authorization'].split(' ').last.then do |token|
-      decode_token(token)[0]['user_id']
-    end
   end
 
   def parse_wordlist_entries(wordlist_entries)
