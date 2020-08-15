@@ -77,15 +77,6 @@ class WordlistEntriesController < ApplicationController
     }
   end
 
-  def render_error_response(status, message)
-    response.status = status
-    render json: {
-      errors: [
-        { title: message }
-      ]
-    }
-  end
-
   def word_params
     params.require(:wordlist_entry).permit(word: :name)[:word]
   end

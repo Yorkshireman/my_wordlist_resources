@@ -34,15 +34,4 @@ class WordlistsController < ApplicationController
       }
     }
   end
-
-  private
-
-  def render_error_response(status, message)
-    response.status = status
-    render json: {
-      errors: [
-        { title: message }
-      ]
-    }
-  end
 end
