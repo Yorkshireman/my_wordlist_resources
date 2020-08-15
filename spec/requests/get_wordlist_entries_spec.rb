@@ -16,17 +16,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
-      wle1 = @wordlist.wordlist_entries.first
-      wle2 = @wordlist.wordlist_entries.second
-      @category1 = wle1.categories.first
-      @category2 = wle2.categories.first
-      require 'byebug'; byebug
-      # wle1.categories << @category1
-      # wle2.categories << @category2
-
       get '/wordlist_entries', headers: headers
-
-      @wordlist_entries_created_at = @wordlist.wordlist_entries.map(&:created_at)
     end
 
     it 'is 200 status' do
@@ -34,14 +24,18 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
     end
 
     it 'has correct body' do
+      category1 = @wordlist.wordlist_entries.first.categories.first
+      category2 = @wordlist.wordlist_entries.second.categories.first
+      wordlist_entries_created_at = @wordlist.wordlist_entries.map(&:created_at)
+
       expected_body = {
         data: {
           token: @token,
           wordlist_entries: [
             {
               attributes: {
-                categories: [{ id: @category2.id, name: @category2.name }],
-                created_at: JSON.parse(@wordlist_entries_created_at[1].to_json),
+                categories: [{ id: category2.id, name: category2.name }],
+                created_at: JSON.parse(wordlist_entries_created_at[1].to_json),
                 description: @wordlist.wordlist_entries.second.description,
                 word: {
                   id: @wordlist.wordlist_entries.second.word.id,
@@ -54,8 +48,8 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
             },
             {
               attributes: {
-                categories: [{ id: @category1.id, name: @category1.name }],
-                created_at: JSON.parse(@wordlist_entries_created_at[0].to_json),
+                categories: [{ id: category1.id, name: category1.name }],
+                created_at: JSON.parse(wordlist_entries_created_at[0].to_json),
                 description: @wordlist.wordlist_entries.first.description,
                 word: {
                   id: @wordlist.wordlist_entries.first.word.id,
