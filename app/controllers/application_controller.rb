@@ -3,7 +3,7 @@ require_relative '../helpers/token_helper'
 class ApplicationController < ActionController::API
   include TokenHelper
   before_action :parse_user_id_from_authorization_header
-  before_action :set_headers
+  after_action :set_headers
 
   def set_headers
     response.headers['Content-Type'] = 'application/vnd.api+json'

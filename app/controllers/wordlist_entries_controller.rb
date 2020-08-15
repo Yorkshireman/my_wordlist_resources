@@ -5,7 +5,7 @@ class WordlistEntriesController < ApplicationController
 
   def create
     if params[:wordlist_entry].nil?
-      return render_error_response(400, 'nil wordlist_entry params')
+      raise(ActionController::BadRequest, 'nil wordlist_entry params')
     end
 
     wordlist = Wordlist.find_by!(user_id: @user_id)
@@ -88,7 +88,7 @@ class WordlistEntriesController < ApplicationController
   def wordlist_entry_params(word_id, wordlist_id)
     params.require(:wordlist_entry).permit(:description, :id, word: :id).tap do |sanitised_params|
       if sanitised_params[:id]
-        raise ActionController::BadRequest.new, 'Invalid WordlistEntry id' unless
+        raise(ActionController::BadRequest.new, 'Invalid WordlistEntry id') unless
           wordlist_entry_id_valid?(sanitised_params[:id])
       end
 
