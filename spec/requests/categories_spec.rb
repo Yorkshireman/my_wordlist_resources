@@ -25,15 +25,16 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
       }
     end
 
+    let(:wordlist) { wordlist_with_wordlist_entries_no_categories }
+    let(:wordlist_entry) { wordlist.wordlist_entries.first }
+
     before :each do
-      @wordlist = wordlist_with_wordlist_entries_no_categories
-      @wordlist_entry = @wordlist.wordlist_entries.first
-      post "/wordlist_entries/#{@wordlist_entry.id}/categories", params: params.to_json, headers: headers
+      post "/wordlist_entries/#{wordlist_entry.id}/categories", params: params.to_json, headers: headers
     end
 
     it 'adds Category to WordlistEntry' do
-      expect(@wordlist_entry.categories.first.id).to eq(category_id)
-      expect(@wordlist_entry.categories.first.name).to eq(category_name)
+      expect(wordlist_entry.categories.first.id).to eq(category_id)
+      expect(wordlist_entry.categories.first.name).to eq(category_name)
     end
 
     it 'returns 201' do
@@ -41,26 +42,24 @@ RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :re
     end
 
     describe 'body' do
-      before :each do
-        @body = JSON.parse(response.body).deep_symbolize_keys
-      end
+      let(:body) { JSON.parse(response.body).deep_symbolize_keys }
 
       it 'has type' do
-        expect(@body[:data][:type]).to eq('wordlist-entry')
+        expect(body[:data][:type]).to eq('wordlist-entry')
       end
 
       it 'has id' do
-        expect(@body[:data][:id]).to eq(@wordlist_entry.id)
+        expect(body[:data][:id]).to eq(wordlist_entry.id)
       end
 
       it 'has categories' do
-        expect(@body[:data][:attributes][:categories]).to eq(
+        expect(body[:data][:attributes][:categories]).to eq(
           [{ id: category_id, name: category_name }]
         )
       end
 
       it 'has a token' do
-        expect(@body[:data][:token]).to eq(generate_token(user_id))
+        expect(body[:data][:token]).to eq(generate_token(user_id))
       end
     end
   end
