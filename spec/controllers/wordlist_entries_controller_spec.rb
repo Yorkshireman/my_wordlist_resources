@@ -11,56 +11,9 @@ RSpec.describe WordlistEntriesController do
   let(:user_id_2) { SecureRandom.uuid }
 
   describe '#index' do
-    before :each do
-      Wordlist.create(user_id: user_id_1).then do |wordlist|
-        @wordlist = wordlist
-        %w[foo fizz buzz].each do |word_name|
-          Word.create(name: word_name).tap do |word|
-            wordlist_entry = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id, description: 'foo bar')
-            wordlist_entry.categories.concat([cat1, cat2, cat3, cat4])
-          end
-        end
-
-        token = generate_token(user_id_1)
-        request.headers['Authorization'] = "Bearer #{token}"
-        request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
-      end
-
-      get :index
-      @response_body = JSON.parse(response.body).deep_symbolize_keys
-    end
-
-    it 'orders WordlistEntries by created_at attribute by newest first' do
-      words_from_response = @response_body[:data][:wordlist_entries].map do |entry|
-        entry[:attributes][:word]
-      end
-
-      expect(words_from_response.first[:name]).to eq('buzz')
-      expect(words_from_response.last[:name]).to eq('foo')
-    end
-
-    it 'includes wordlist_id' do
-      actual_wordlist_id = @response_body[:data][:wordlist_entries][0][:attributes][:wordlist_id]
-      expected_wordlist_id = @wordlist.id
-      expect(actual_wordlist_id).to eq(expected_wordlist_id)
-    end
-
-    it 'WordlistEntry categories are returned in name order' do
-      expect(@response_body[:data][:wordlist_entries].first[:attributes][:categories])
-        .to eq(
-          [
-            { id: cat3.id, name: 'adjective' },
-            { id: cat4.id, name: 'household' },
-            { id: cat1.id, name: 'noun' },
-            { id: cat2.id, name: 'verb' }
-          ]
-        )
-    end
-
     context 'when the supplied user_id is not associated with any Wordlist' do
       before :each do
-        token = generate_token(SecureRandom.uuid)
-        request.headers['Authorization'] = "Bearer #{token}"
+        request.headers['Authorization'] = "Bearer #{generate_token(SecureRandom.uuid)}"
         get :index
         @response_body = JSON.parse(response.body).deep_symbolize_keys
       end

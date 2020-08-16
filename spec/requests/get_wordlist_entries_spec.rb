@@ -48,7 +48,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
           expect(actual_wle[:id]).to eq(expected_wle.id)
         end
 
-        it 'has correct categories' do
+        it 'has correct categories in name order' do
           expected_categories =
             JSON.parse(expected_wle.categories.order(:name).to_json(only: [:id, :name]))
                 .map(&:deep_symbolize_keys)
@@ -93,7 +93,7 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
           expect(actual_wle[:id]).to eq(expected_wle.id)
         end
 
-        it 'has correct categories' do
+        it 'has correct categories in name order' do
           expected_categories =
             JSON.parse(expected_wle.categories.order(:name).to_json(only: [:id, :name]))
                 .map(&:deep_symbolize_keys)
