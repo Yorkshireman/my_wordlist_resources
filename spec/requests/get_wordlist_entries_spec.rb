@@ -8,11 +8,11 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
   include TokenHelper
 
   context 'when request is valid' do
+    let(:wordlist) { wordlist_with_wordlist_entries_with_categories }
+
     before :each do
-      @wordlist = wordlist_with_wordlist_entries_with_categories
-      @token = generate_token(@wordlist.user_id)
       headers = {
-        'Authorization' => "Bearer #{@token}",
+        'Authorization' => "Bearer #{generate_token(wordlist.user_id)}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
@@ -25,9 +25,11 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
 
     describe 'response body' do
       let(:response_body) { JSON.parse(response.body).deep_symbolize_keys }
+      let(:first_wordlist_entry) { response_body[:data][:wordlist_entries][0] }
+      let(:second_wordlist_entry) { response_body[:data][:wordlist_entries][1] }
 
       it 'has token' do
-        expect(response_body[:data][:token]).to eq(@token)
+        expect(response_body[:data][:token]).to eq(generate_token(wordlist.user_id))
       end
 
       it 'has correct number of wordlist_entries' do
@@ -41,92 +43,92 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
       end
 
       describe 'first wordlist_entry' do
-        let(:actual_wle) { response_body[:data][:wordlist_entries][0] }
-        let(:expected_wle) { @wordlist.wordlist_entries.second }
+        let(:expected_first_wordlist_entry) { wordlist.wordlist_entries.second }
 
         it 'has correct id' do
-          expect(actual_wle[:id]).to eq(expected_wle.id)
+          expect(first_wordlist_entry[:id]).to eq(expected_first_wordlist_entry.id)
         end
 
         it 'has correct categories in name order' do
           expected_categories =
-            JSON.parse(expected_wle.categories.order(:name).to_json(only: [:id, :name]))
+            JSON.parse(expected_first_wordlist_entry.categories.order(:name).to_json(only: [:id, :name]))
                 .map(&:deep_symbolize_keys)
 
-          expect(actual_wle[:attributes][:categories]).to eq(expected_categories)
+          expect(first_wordlist_entry[:attributes][:categories]).to eq(expected_categories)
         end
 
         it 'has created_at' do
-          expect(actual_wle[:attributes][:created_at]).to be_truthy
+          expect(first_wordlist_entry[:attributes][:created_at]).to be_truthy
         end
 
         it 'has correct description' do
-          expect(actual_wle[:attributes][:description]).to eq(expected_wle.description)
+          expect(first_wordlist_entry[:attributes][:description]).to eq(expected_first_wordlist_entry.description)
         end
 
         it 'has correct word id' do
-          expect(actual_wle[:attributes][:word][:id]).to eq(expected_wle.word.id)
+          expect(first_wordlist_entry[:attributes][:word][:id]).to eq(expected_first_wordlist_entry.word.id)
         end
 
         it 'has correct word name' do
-          expect(actual_wle[:attributes][:word][:name]).to eq(expected_wle.word.name)
+          expect(first_wordlist_entry[:attributes][:word][:name]).to eq(expected_first_wordlist_entry.word.name)
         end
 
         it 'wordlist_ids is an array of 1' do
-          expect(actual_wle[:attributes][:word][:wordlist_ids].length).to be(1)
+          expect(first_wordlist_entry[:attributes][:word][:wordlist_ids].length).to be(1)
         end
 
         it 'has correct wordlist_ids' do
-          expect(actual_wle[:attributes][:word][:wordlist_ids][0]).to eq(expected_wle.word.wordlist_ids.first)
+          expect(first_wordlist_entry[:attributes][:word][:wordlist_ids][0])
+            .to eq(expected_first_wordlist_entry.word.wordlist_ids.first)
         end
 
         it 'has correct wordlist_id' do
-          expect(actual_wle[:attributes][:wordlist_id]).to eq(expected_wle.wordlist_id)
+          expect(first_wordlist_entry[:attributes][:wordlist_id]).to eq(expected_first_wordlist_entry.wordlist_id)
         end
       end
 
       describe 'second wordlist_entry' do
-        let(:actual_wle) { response_body[:data][:wordlist_entries][1] }
-        let(:expected_wle) { @wordlist.wordlist_entries.first }
+        let(:expected_second_wordlist_entry) { wordlist.wordlist_entries.first }
 
         it 'has correct id' do
-          expect(actual_wle[:id]).to eq(expected_wle.id)
+          expect(second_wordlist_entry[:id]).to eq(expected_second_wordlist_entry.id)
         end
 
         it 'has correct categories in name order' do
           expected_categories =
-            JSON.parse(expected_wle.categories.order(:name).to_json(only: [:id, :name]))
+            JSON.parse(expected_second_wordlist_entry.categories.order(:name).to_json(only: [:id, :name]))
                 .map(&:deep_symbolize_keys)
 
-          expect(actual_wle[:attributes][:categories]).to eq(expected_categories)
+          expect(second_wordlist_entry[:attributes][:categories]).to eq(expected_categories)
         end
 
         it 'has created_at' do
-          expect(actual_wle[:attributes][:created_at]).to be_truthy
+          expect(second_wordlist_entry[:attributes][:created_at]).to be_truthy
         end
 
         it 'has correct description' do
-          expect(actual_wle[:attributes][:description]).to eq(expected_wle.description)
+          expect(second_wordlist_entry[:attributes][:description]).to eq(expected_second_wordlist_entry.description)
         end
 
         it 'has correct word id' do
-          expect(actual_wle[:attributes][:word][:id]).to eq(expected_wle.word.id)
+          expect(second_wordlist_entry[:attributes][:word][:id]).to eq(expected_second_wordlist_entry.word.id)
         end
 
         it 'has correct word name' do
-          expect(actual_wle[:attributes][:word][:name]).to eq(expected_wle.word.name)
+          expect(second_wordlist_entry[:attributes][:word][:name]).to eq(expected_second_wordlist_entry.word.name)
         end
 
         it 'wordlist_ids is an array of 1' do
-          expect(actual_wle[:attributes][:word][:wordlist_ids].length).to be(1)
+          expect(second_wordlist_entry[:attributes][:word][:wordlist_ids].length).to be(1)
         end
 
         it 'has correct wordlist_ids' do
-          expect(actual_wle[:attributes][:word][:wordlist_ids][0]).to eq(expected_wle.word.wordlist_ids.first)
+          expect(second_wordlist_entry[:attributes][:word][:wordlist_ids][0])
+            .to eq(expected_second_wordlist_entry.word.wordlist_ids.first)
         end
 
         it 'has correct wordlist_id' do
-          expect(actual_wle[:attributes][:wordlist_id]).to eq(expected_wle.wordlist_id)
+          expect(second_wordlist_entry[:attributes][:wordlist_id]).to eq(expected_second_wordlist_entry.wordlist_id)
         end
       end
     end
@@ -143,9 +145,8 @@ RSpec.describe 'GET /wordlist_entries response', type: :request do
       end
 
       it 'error message is appropriate' do
-        expected_message = 'missing Authorization header'
         actual_message = JSON.parse(response.body).deep_symbolize_keys[:errors][0][:title]
-        expect(actual_message).to eq(expected_message)
+        expect(actual_message).to eq('missing Authorization header')
       end
     end
   end
