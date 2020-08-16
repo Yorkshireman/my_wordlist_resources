@@ -3,11 +3,11 @@ require 'securerandom'
 
 FactoryBot.define do
   factory :category do
-    name { FFaker::Lorem.unique.word }
+    sequence(:name) { |n| FFaker::Lorem.word + n.to_s }
   end
 
   factory :word do
-    name { FFaker::Lorem.unique.word }
+    sequence(:name) { |n| FFaker::Lorem.word + n.to_s }
   end
 
   factory :word_category do
@@ -31,7 +31,7 @@ FactoryBot.define do
     wordlist
 
     after :create do |wordlist_entry|
-      create_list :word_category, 1, category: create(:category), wordlist_entry: wordlist_entry
+      3.times { wordlist_entry.categories << create(:category) }
     end
   end
 end

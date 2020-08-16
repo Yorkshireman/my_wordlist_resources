@@ -10,13 +10,6 @@ RSpec.describe WordlistEntriesController do
   let(:user_id_1) { SecureRandom.uuid }
   let(:user_id_2) { SecureRandom.uuid }
 
-  before :all do
-    Wordlist.destroy_all
-    WordlistEntry.destroy_all
-    Word.destroy_all
-    Category.destroy_all
-  end
-
   describe '#index' do
     before :each do
       Wordlist.create(user_id: user_id_1).then do |wordlist|

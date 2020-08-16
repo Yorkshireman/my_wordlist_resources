@@ -4,7 +4,7 @@ require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
-RSpec.describe 'GET /wordlist_entries response', type: :request, focus: true do
+RSpec.describe 'GET /wordlist_entries response', type: :request do
   include TokenHelper
 
   context 'when request is valid' do
