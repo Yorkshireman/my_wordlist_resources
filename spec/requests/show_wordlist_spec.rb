@@ -7,11 +7,11 @@ RSpec.describe 'GET /wordlist response', type: :request do
   include TokenHelper
 
   describe 'when request is valid' do
+    let(:wordlist) { create(:wordlist) }
+
     before :each do
-      @wordlist = create(:wordlist)
-      @token = generate_token(@wordlist.user_id)
       headers = {
-        'Authorization' => "Bearer #{@token}",
+        'Authorization' => "Bearer #{generate_token(wordlist.user_id)}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
@@ -23,19 +23,18 @@ RSpec.describe 'GET /wordlist response', type: :request do
     end
 
     it 'has correct body' do
-      expected_created_at = JSON.parse(@wordlist.created_at.to_json)
+      actual_body = JSON.parse(response.body).deep_symbolize_keys
       expected_body = {
         data: {
           attributes: {
-            created_at: expected_created_at
+            created_at: JSON.parse(wordlist.created_at.to_json)
           },
-          id: @wordlist.id,
-          token: @token,
+          id: wordlist.id,
+          token: generate_token(wordlist.user_id),
           type: 'wordlist'
         }
       }
 
-      actual_body = JSON.parse(response.body).deep_symbolize_keys
       expect(actual_body).to eq(expected_body)
     end
   end
