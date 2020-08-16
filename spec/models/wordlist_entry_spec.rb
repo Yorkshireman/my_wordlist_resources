@@ -1,12 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe WordlistEntry, type: :model do
-  let(:category1) { Category.create(name: 'noun') }
-  let(:category2) { Category.create(name: 'verb') }
-  let(:wordlist1) { Wordlist.create(user_id: SecureRandom.uuid) }
-  let(:word1) { Word.create(name: 'foobar') }
+  let(:category1) { create(:category) }
+  let(:category2) { create(:category) }
+  let(:wordlist) { create(:wordlist) }
+  let(:word) { create(:word) }
   let(:wordlist_entry) do
-    described_class.create!(word_id: word1.id, wordlist_id: wordlist1.id)
+    described_class.create!(word_id: word.id, wordlist_id: wordlist.id)
   end
 
   context 'when an id is not provided during creation' do
@@ -15,22 +15,18 @@ RSpec.describe WordlistEntry, type: :model do
     end
 
     it 'id is different between instances' do
-      wordlist_entry2 = described_class.create!(
-        word_id: Word.create(name: 'fizzbuzz').id,
-        wordlist_id: Wordlist.create(user_id: SecureRandom.uuid).id
-      )
-
+      wordlist_entry2 = create(:wordlist_entry)
       expect(wordlist_entry.id).to_not eq wordlist_entry2.id
     end
   end
 
   context 'when an id is provided during creation' do
-    let(:my_uuid) { '79c9bc0f-8ecf-4cf7-a05e-7c485d02078d' }
+    let(:uuid) { '79c9bc0f-8ecf-4cf7-a05e-7c485d02078d' }
     let(:wordlist_entry2) do
       described_class.create!(
-        id: my_uuid,
-        word_id: word1.id,
-        wordlist_id: wordlist1.id
+        id: uuid,
+        word_id: word.id,
+        wordlist_id: wordlist.id
       )
     end
 
@@ -39,21 +35,21 @@ RSpec.describe WordlistEntry, type: :model do
     end
 
     it "if id isn't a valid UUID, one is created" do
-      wordlist_entry = described_class.create(
+      wle = described_class.create(
         id: 'bogus-id',
-        word_id: word1.id,
-        wordlist_id: wordlist1.id
+        word_id: word.id,
+        wordlist_id: wordlist.id
       )
 
-      expect(VALID_UUID_REGEX.match?(wordlist_entry.id)).to be true
+      expect(VALID_UUID_REGEX.match?(wle.id)).to be true
     end
 
     it 'id must be unique' do
       expect do
         described_class.create!(
           id: wordlist_entry2.id,
-          word_id: word1.id,
-          wordlist_id: wordlist1.id
+          word_id: word.id,
+          wordlist_id: wordlist.id
         )
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
@@ -81,9 +77,7 @@ RSpec.describe WordlistEntry, type: :model do
   end
 
   it 'can add a category that already belongs to another WordlistEntry' do
-    wordlist = Wordlist.create(user_id: SecureRandom.uuid)
-    word = Word.create(name: 'fizzbuzz')
-    wordlist_entry2 = WordlistEntry.create(wordlist_id: wordlist.id, word_id: word.id)
+    wordlist_entry2 = create(:wordlist_entry)
     wordlist_entry2.categories << category1
 
     wordlist_entry.categories << category1

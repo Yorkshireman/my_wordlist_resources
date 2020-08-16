@@ -1,6 +1,5 @@
 require 'jwt'
 require 'rails_helper'
-require 'securerandom'
 
 require_relative '../../app/helpers/token_helper.rb'
 
@@ -8,22 +7,15 @@ RSpec.describe 'GET /wordlist response', type: :request do
   include TokenHelper
 
   describe 'when request is valid' do
+    let(:wordlist) { create(:wordlist) }
+
     before :each do
-      Wordlist.destroy_all
-      user_id = SecureRandom.uuid
-      @wordlist = Wordlist.create(user_id: user_id)
-      token = generate_token(user_id)
       headers = {
-        'Authorization' => "Bearer #{token}",
+        'Authorization' => "Bearer #{generate_token(wordlist.user_id)}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
       get '/wordlist', headers: headers
-      @token = JWT.encode(
-        { user_id: user_id },
-        ENV['JWT_SECRET_KEY'],
-        'HS256'
-      )
     end
 
     it 'is 200 status' do
@@ -31,19 +23,18 @@ RSpec.describe 'GET /wordlist response', type: :request do
     end
 
     it 'has correct body' do
-      expected_created_at = JSON.parse(@wordlist.created_at.to_json)
+      actual_body = JSON.parse(response.body).deep_symbolize_keys
       expected_body = {
         data: {
           attributes: {
-            created_at: expected_created_at
+            created_at: JSON.parse(wordlist.created_at.to_json)
           },
-          id: @wordlist.id,
-          token: @token,
+          id: wordlist.id,
+          token: generate_token(wordlist.user_id),
           type: 'wordlist'
         }
       }
 
-      actual_body = JSON.parse(response.body).deep_symbolize_keys
       expect(actual_body).to eq(expected_body)
     end
   end

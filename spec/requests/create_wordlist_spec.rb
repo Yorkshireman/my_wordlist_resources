@@ -9,20 +9,14 @@ RSpec.describe 'POST /wordlists response', type: :request do
 
   describe 'when request is valid' do
     before :each do
-      Wordlist.destroy_all
-      user_id = SecureRandom.uuid
-      token = generate_token(user_id)
+      @token = generate_token(SecureRandom.uuid)
       headers = {
-        'Authorization' => "Bearer #{token}",
+        'Authorization' => "Bearer #{@token}",
         'CONTENT_TYPE' => 'application/vnd.api+json'
       }
 
+      expect(Wordlist.count).to be(0)
       post '/wordlists', headers: headers
-      @token = JWT.encode(
-        { user_id: user_id },
-        ENV['JWT_SECRET_KEY'],
-        'HS256'
-      )
     end
 
     it 'is 201 status' do
@@ -30,6 +24,7 @@ RSpec.describe 'POST /wordlists response', type: :request do
     end
 
     it 'has correct body' do
+      expect(Wordlist.count).to be(1)
       expected_created_at = JSON.parse(Wordlist.first.created_at.to_json)
       expected_body = {
         data: {
