@@ -57,5 +57,4 @@ RSpec.describe Word, type: :model do
   it 'is searchable by the id' do
     expect(described_class.find(word.id)).to eq(word)
   end
-
 end
