@@ -12,7 +12,7 @@ class WordlistEntriesController < ApplicationController
     @wordlist_id = wordlist.id
 
     word = find_or_create_word
-    wordlist_entry = WordlistEntry.create(wordlist_entry_params(word.id, @wordlist_id))
+    wordlist_entry = WordlistEntry.create!(wordlist_entry_params(word.id, @wordlist_id))
 
     render json: {
       data: {
@@ -50,7 +50,7 @@ class WordlistEntriesController < ApplicationController
              Word.find_by(name: word_name)
            end
 
-    word || Word.create(word_params)
+    word || Word.create!(word_params)
   end
 
   def parse_wordlist_entries(wordlist_entries)

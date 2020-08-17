@@ -4,8 +4,7 @@ class WordlistsController < ApplicationController
   include TokenHelper
 
   def create
-    wordlist = Wordlist.new(user_id: @user_id)
-    return unless wordlist.save
+    wordlist = Wordlist.create!(user_id: @user_id)
 
     response.status = 201
     render json: {
