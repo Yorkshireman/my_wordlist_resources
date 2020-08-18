@@ -45,11 +45,6 @@ RSpec.describe WordlistEntriesController do
           }
         end
 
-        after :each do
-          Word.destroy_all
-          WordlistEntry.destroy_all
-        end
-
         it 'responds with 201 http status' do
           expect(response).to have_http_status(201)
         end
@@ -110,18 +105,14 @@ RSpec.describe WordlistEntriesController do
         end
       end
 
-      context 'when Word already exists' do
+      context 'when Word already exists with same name' do
         let(:pre_existing_word) { create(:word, name: 'table') }
         let(:wordlist1) { create(:wordlist, user_id: user_id_1) }
-        let(:wordlist2) { create(:wordlist, user_id: user_id_2) }
 
         before :each do
-          # create a word and add to a user's wordlist
-          create(:wordlist_entry, wordlist_id: wordlist2.id, word_id: pre_existing_word.id)
           request.headers['Authorization'] = "Bearer #{generate_token(user_id_1)}"
           request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
 
-          # send request to add same word (by name, not id) to a different user's wordlist
           post :create, params: {
             wordlist_entry: {
               description: 'something to put things on',
@@ -134,10 +125,6 @@ RSpec.describe WordlistEntriesController do
           }
         end
 
-        after :each do
-          wordlist1.words.destroy_all
-        end
-
         it 'responds with 201 http status' do
           expect(response).to have_http_status(201)
         end
@@ -147,12 +134,11 @@ RSpec.describe WordlistEntriesController do
         end
 
         it 'creates a WordlistEntry' do
-          expect(WordlistEntry.count).to eq(2)
+          expect(wordlist1.wordlist_entries.count).to eq(1)
         end
 
         it 'adds existing word to wordlist rather than duplicating' do
           expect(wordlist1.wordlist_entries.first.word.id).to eq(pre_existing_word.id)
-          expect(wordlist1.wordlist_entries.count).to eq(1)
         end
 
         describe 'response body' do
@@ -194,7 +180,7 @@ RSpec.describe WordlistEntriesController do
 
           it "has word's wordlist_ids" do
             expect(response_body[:data][:attributes][:word][:wordlist_ids])
-              .to eq([wordlist2.id, wordlist1.id])
+              .to eq([wordlist1.id])
           end
 
           it 'has wordlist_id' do
@@ -203,15 +189,18 @@ RSpec.describe WordlistEntriesController do
         end
 
         context 'when Word name is not provided in the request' do
+          let(:wordlist) { create(:wordlist) }
+
           before :each do
+            request.headers['Authorization'] = "Bearer #{generate_token(wordlist.user_id)}"
+
             post :create, params: {
               wordlist_entry: {
-                description: 'something to put things on',
                 word: {
                   id: pre_existing_word.id
                 }
               },
-              wordlist_id: wordlist1.id,
+              wordlist_id: wordlist.id,
               format: :json
             }
           end
@@ -225,19 +214,23 @@ RSpec.describe WordlistEntriesController do
           end
 
           it 'creates a WordlistEntry' do
-            expect(WordlistEntry.count).to eq(3)
+            expect(wordlist.wordlist_entries.count).to eq(1)
           end
         end
 
         context 'when description is not provided in the request' do
+          let(:wordlist) { create(:wordlist) }
+
           before :each do
+            request.headers['Authorization'] = "Bearer #{generate_token(wordlist.user_id)}"
+
             post :create, params: {
               wordlist_entry: {
                 word: {
                   id: pre_existing_word.id
                 }
               },
-              wordlist_id: wordlist1.id,
+              wordlist_id: wordlist.id,
               format: :json
             }
           end
@@ -251,7 +244,7 @@ RSpec.describe WordlistEntriesController do
           end
 
           it 'creates a WordlistEntry' do
-            expect(WordlistEntry.count).to eq(3)
+            expect(wordlist.wordlist_entries.count).to eq(1)
           end
         end
       end
@@ -394,6 +387,40 @@ RSpec.describe WordlistEntriesController do
 
         it 'does not create a WordlistEntry' do
           expect(WordlistEntry.count).to eq(0)
+        end
+      end
+
+      context 'when Wordlist has an existing WordlistEntry with same Word name' do
+        let(:pre_existing_word) { create(:word) }
+        let(:wordlist) { create(:wordlist) }
+        let(:pre_existing_wordlist_entry) { create(:wordlist_entry, word: pre_existing_word, wordlist_id: wordlist.id) }
+
+        before :each do
+          request.headers['Authorization'] = "Bearer #{generate_token(wordlist.user_id)}"
+          post :create, params: {
+            wordlist_entry: {
+              word: { name: pre_existing_wordlist_entry.word.name }
+            },
+            wordlist_id: wordlist.id,
+            format: :json
+          }
+        end
+
+        it 'responds with 422 http status' do
+          expect(response).to have_http_status(422)
+        end
+
+        it 'error message is appropriate' do
+          response_body = JSON.parse(response.body).deep_symbolize_keys
+          expect(response_body[:errors][0][:title]).to eq('Validation failed: Word name not unique to Wordlist')
+        end
+
+        it 'does not create a Word' do
+          expect(Word.count).to eq(1)
+        end
+
+        it 'does not create a WordlistEntry' do
+          expect(WordlistEntry.count).to eq(1)
         end
       end
     end

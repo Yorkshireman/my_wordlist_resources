@@ -16,6 +16,10 @@ class ApplicationController < ActionController::API
     render_error_response(400, e)
   end
 
+  rescue_from 'ActiveRecord::RecordInvalid' do |e|
+    render_error_response(422, e)
+  end
+
   rescue_from 'ActiveRecord::RecordNotFound' do |e|
     render_error_response(404, e)
   end

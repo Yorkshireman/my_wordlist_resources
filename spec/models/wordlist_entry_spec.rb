@@ -48,7 +48,7 @@ RSpec.describe WordlistEntry, type: :model do
       expect do
         described_class.create!(
           id: wordlist_entry2.id,
-          word_id: word.id,
+          word_id: create(:word).id,
           wordlist_id: wordlist.id
         )
       end.to raise_error(ActiveRecord::RecordNotUnique)

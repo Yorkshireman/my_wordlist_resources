@@ -42,12 +42,10 @@ class WordlistEntriesController < ApplicationController
   private
 
   def find_or_create_word
-    word_id = params[:wordlist_entry][:word][:id]
-    word_name = params[:wordlist_entry][:word][:name]
-    word = if word_id
-             Word.find(word_id)
+    word = if word_params[:id]
+             Word.find(word_params[:id])
            else
-             Word.find_by(name: word_name)
+             Word.find_by(name: word_params[:name])
            end
 
     word || Word.create!(word_params)
@@ -78,7 +76,7 @@ class WordlistEntriesController < ApplicationController
   end
 
   def word_params
-    params.require(:wordlist_entry).permit(word: :name)[:word]
+    params.require(:wordlist_entry).permit(word: [:id, :name])[:word]
   end
 
   def wordlist_entry_id_valid?(id)
