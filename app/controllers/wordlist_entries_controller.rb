@@ -12,7 +12,7 @@ class WordlistEntriesController < ApplicationController
     @wordlist_id = wordlist.id
 
     word = find_or_create_word
-    wordlist_entry = WordlistEntry.create(wordlist_entry_params(word.id, @wordlist_id))
+    wordlist_entry = WordlistEntry.create!(wordlist_entry_params(word.id, @wordlist_id))
 
     render json: {
       data: {
@@ -42,15 +42,13 @@ class WordlistEntriesController < ApplicationController
   private
 
   def find_or_create_word
-    word_id = params[:wordlist_entry][:word][:id]
-    word_name = params[:wordlist_entry][:word][:name]
-    word = if word_id
-             Word.find(word_id)
+    word = if word_params[:id]
+             Word.find(word_params[:id])
            else
-             Word.find_by(name: word_name)
+             Word.find_by(name: word_params[:name])
            end
 
-    word || Word.create(word_params)
+    word || Word.create!(word_params)
   end
 
   def parse_wordlist_entries(wordlist_entries)
@@ -78,7 +76,7 @@ class WordlistEntriesController < ApplicationController
   end
 
   def word_params
-    params.require(:wordlist_entry).permit(word: :name)[:word]
+    params.require(:wordlist_entry).permit(word: [:id, :name])[:word]
   end
 
   def wordlist_entry_id_valid?(id)

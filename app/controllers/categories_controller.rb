@@ -32,7 +32,7 @@ class CategoriesController < ApplicationController
     raise_error ArgumentError.new('No category params provided') if category_params.empty?
     return Category.find_by(name: category_params[:name]) if Category.exists?(name: category_params[:name])
 
-    Category.create(category_params)
+    Category.create!(category_params)
   end
 
   def wordlist_entry_categories_params

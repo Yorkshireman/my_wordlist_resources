@@ -37,13 +37,15 @@ FactoryBot.define do
 end
 
 def wordlist_with_wordlist_entries_with_categories(wordlist_entries_count: 2)
-  FactoryBot.create(:wordlist) do |wordlist|
+  FactoryBot.create(:wordlist).then do |wordlist|
     FactoryBot.create_list(:wordlist_entry_with_categories, wordlist_entries_count, wordlist: wordlist)
+    Wordlist.last
   end
 end
 
 def wordlist_with_wordlist_entries_no_categories(wordlist_entries_count: 2)
-  FactoryBot.create(:wordlist) do |wordlist|
+  FactoryBot.create(:wordlist).then do |wordlist|
     FactoryBot.create_list(:wordlist_entry, wordlist_entries_count, wordlist: wordlist)
+    Wordlist.last
   end
 end
