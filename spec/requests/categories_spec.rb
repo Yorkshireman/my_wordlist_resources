@@ -2,7 +2,7 @@ require 'jwt'
 require 'rails_helper'
 require 'securerandom'
 
-require_relative '../../app/helpers/token_helper.rb'
+require_relative '../../app/helpers/token_helper'
 
 RSpec.describe 'POST /wordlist_entries/:wordlist_entry_id/categories', type: :request do
   include TokenHelper

@@ -3,6 +3,7 @@ require: rubocop-performance
 AllCops:
   Exclude:
     - db/schema.rb
+  NewCops: enable
 
 inherit_mode:
   merge:

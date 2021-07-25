@@ -1,10 +1,9 @@
 require 'rails_helper'
-require_relative '../../app/helpers/token_helper.rb'
+require_relative '../../app/helpers/token_helper'
 
 RSpec.describe WordlistEntriesController do
   include TokenHelper
-  let(:user_id_1) { SecureRandom.uuid }
-  let(:user_id_2) { SecureRandom.uuid }
+  let(:user_id1) { SecureRandom.uuid }
 
   describe '#index' do
     context 'when the supplied user_id is not associated with any Wordlist' do
@@ -107,10 +106,10 @@ RSpec.describe WordlistEntriesController do
 
       context 'when Word already exists with same name' do
         let(:pre_existing_word) { create(:word, name: 'table') }
-        let(:wordlist1) { create(:wordlist, user_id: user_id_1) }
+        let(:wordlist1) { create(:wordlist, user_id: user_id1) }
 
         before :each do
-          request.headers['Authorization'] = "Bearer #{generate_token(user_id_1)}"
+          request.headers['Authorization'] = "Bearer #{generate_token(user_id1)}"
           request.headers['CONTENT_TYPE'] = 'application/vnd.api+json'
 
           post :create, params: {
@@ -150,7 +149,7 @@ RSpec.describe WordlistEntriesController do
           end
 
           it 'has token' do
-            expect(response_body[:data][:token]).to eq(generate_token(user_id_1))
+            expect(response_body[:data][:token]).to eq(generate_token(user_id1))
           end
 
           it 'has type' do
