@@ -47,7 +47,7 @@ class ApplicationController < ActionController::API
   end
 
   def parse_token_from_headers(headers)
-    headers['Authorization'].split(' ').last
+    headers['Authorization'].split.last
   end
 
   def parse_user_id_from_token(token)

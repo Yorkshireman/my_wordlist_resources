@@ -86,8 +86,8 @@ class WordlistEntriesController < ApplicationController
   def wordlist_entry_params(word_id, wordlist_id)
     params.require(:wordlist_entry).permit(:description, :id, word: :id).tap do |sanitised_params|
       if sanitised_params[:id]
-        raise(ActionController::BadRequest.new, 'Invalid WordlistEntry id') unless
-          wordlist_entry_id_valid?(sanitised_params[:id])
+        wordlist_entry_id_valid?(sanitised_params[:id]) ||
+          raise(ActionController::BadRequest.new, 'Invalid WordlistEntry id')
       end
 
       return {
